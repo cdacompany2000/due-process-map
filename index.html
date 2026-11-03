@@ -5771,6 +5771,7 @@ document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{cons
 $('year').onchange=e=>{stopPlay();S.year=e.target.value==='all'?'all':+e.target.value;refresh()};
 $('type').onchange=e=>{S.type=e.target.value;refresh()};
 $('min').oninput=e=>{S.min=+e.target.value;$('minv').textContent=S.min;refresh()};
+addEventListener('message',e=>{try{const h=new URL(e.origin).hostname;if(!/(^|\.)cdacompany\.com$/.test(h))return}catch(_){return}const c=e.data&&e.data.cdaLang;if(c&&I18N[c]&&c!==S.lang){const l=$('lang');l.value=c;l.dispatchEvent(new Event('change'))}});
 $('lang').onchange=e=>{S.lang=e.target.value;try{localStorage.setItem('cdaLang',S.lang)}catch(_){};applyLang()};
 $('view').onclick=()=>{S.view=S.view==='3d'?'2d':'3d';syncTools();map.easeTo({pitch:S.view==='3d'?52:0,bearing:S.view==='3d'?-12:0,duration:800})};
 function goSide(){const em=document.documentElement.classList.contains('embed');let inF=false;try{inF=window.self!==window.top}catch(e){inF=true}
