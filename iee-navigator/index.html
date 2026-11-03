@@ -1235,6 +1235,7 @@ document.addEventListener("click", e=>{
 });
 window.addEventListener("hashchange", ()=>{ let h=""; try{ h=(location.hash||"").slice(1); }catch(e){} if(VIEWS.includes(h) && h!==curView) showView(h); });
 function renderAll(){ stateLine(); renderNav(); renderOpts(); renderLetter(); renderRB(); renderApproved(); renderDl(); renderStates(); }
+try{ const q=new URLSearchParams(location.search).get("q1"); const a=N.start.a[+q]; if(q!==null && a){ hist[0].ans=a[0]; hist.push({id:a[1]}); } }catch(e){}
 renderAll(); route();
 </script>
 
