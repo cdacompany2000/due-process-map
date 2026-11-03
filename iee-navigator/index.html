@@ -318,13 +318,13 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
       <div class="rules">
         <h3>The rules at a glance</h3>
         <div class="rule"><b>Right to an IEE</b><p>Parent disagrees with a district evaluation. <span class="cite">34 C.F.R. § 300.502(b)</span></p></div>
-        <div class="rule"><b>District must act</b><p>Fund the IEE or file for due process, without unnecessary delay. <span class="cite">§ 300.502(b)(2)</span></p></div>
-        <div class="rule"><b>No explanation required</b><p>District may ask; parent need not answer. <span class="cite">§ 300.502(b)(4)</span></p></div>
-        <div class="rule"><b>Same criteria only</b><p>No conditions beyond those for district evaluations. <span class="cite">§ 300.502(e)</span></p></div>
-        <div class="rule"><b>Results must be considered</b><p>Includes parent-funded IEEs that meet criteria. <span class="cite">§ 300.502(c)</span></p></div>
-        <div class="rule"><b>One per evaluation</b><p>Per district evaluation the parent disagrees with. <span class="cite">§ 300.502(b)(5)</span></p></div>
+        <div class="rule"><b>District must act</b><p>Fund the IEE or file for due process, without unnecessary delay. <span class="cite">34 C.F.R. § 300.502(b)(2)</span></p></div>
+        <div class="rule"><b>No explanation required</b><p>District may ask; parent need not answer. <span class="cite">34 C.F.R. § 300.502(b)(4)</span></p></div>
+        <div class="rule"><b>Same criteria only</b><p>No conditions beyond those for district evaluations. <span class="cite">34 C.F.R. § 300.502(e)</span></p></div>
+        <div class="rule"><b>Results must be considered</b><p>Includes parent-funded IEEs that meet criteria. <span class="cite">34 C.F.R. § 300.502(c)</span></p></div>
+        <div class="rule"><b>One per evaluation</b><p>Per district evaluation the parent disagrees with. <span class="cite">34 C.F.R. § 300.502(b)(5)</span></p></div>
         <div class="rule"><b>FBAs count</b><p>Federal guidance treats an FBA as an evaluation, so IEE rights apply. <span class="cite">OSEP, Letter to Baus (2015)</span></p></div>
-        <div class="rule"><b>Notice of refusal</b><p>District must explain refusals in writing. <span class="cite">§ 300.503</span></p></div>
+        <div class="rule"><b>Notice of refusal</b><p>District must explain refusals in writing. <span class="cite">34 C.F.R. § 300.503</span></p></div>
       </div>
     </div>
   </section>
@@ -576,17 +576,17 @@ const N = {
 
  notsure:{r:1,tone:"act",badge:"First step",title:"Get the records before anything else",
    body:["You need to know what the district actually tested before you can disagree with it. You have the right to see your child's education records, and the district must respond within 45 days, and before any IEP meeting or hearing."],
-   steps:["Ask in writing for every evaluation report, score summary, and eligibility document from the past three years. <span class='cite'>§ 300.613</span>","Note the date on each report. Your IEE right attaches to a specific evaluation.","Come back here once you have them."], opts:["iep"]},
+   steps:["Ask in writing for every evaluation report, score summary, and eligibility document from the past three years. <span class='cite'>34 C.F.R. § 300.613</span>","Note the date on each report. Your IEE right attaches to a specific evaluation.","Come back here once you have them."], opts:["iep"]},
 
  noeval:{q:"Have you asked the district, in writing, to evaluate your child?", help:"Districts have a duty to find and evaluate children who may have a disability. A written request creates a record.", a:[["Not yet","askeval"],["Yes, and they refused","refused"],["Yes, it's in progress","inprogress"]]},
 
  askeval:{r:1,tone:"act",badge:"Start here",title:"Request an evaluation in writing",
    body:["The right to an IEE begins after the district evaluates. So the first move is asking the district to evaluate.","Once you sign consent, federal law gives the district 60 days to complete the initial evaluation, unless your state sets its own timeline."],
-   steps:["Write to the principal and special education director describing your concerns and asking for a full evaluation in all areas of suspected disability.","Sign and return the consent form promptly. The clock starts at consent. <span class='cite'>§ 300.301(c)</span>","Ask for a copy of the report before the eligibility meeting."], opts:["iep"]},
+   steps:["Write to the principal and special education director describing your concerns and asking for a full evaluation in all areas of suspected disability.","Sign and return the consent form promptly. The clock starts at consent. <span class='cite'>34 C.F.R. § 300.301(c)</span>","Ask for a copy of the report before the eligibility meeting."], opts:["iep"]},
 
  refused:{r:1,tone:"stop",badge:"You can challenge this",title:"The district refused to evaluate",
    body:["A district that refuses must give you Prior Written Notice explaining why, what it considered, and what information it relied on. A refusal without that notice is itself a procedural problem.","You can challenge a refusal to evaluate through a state complaint or due process. A hearing officer can also order an evaluation, including an IEE at public expense."],
-   steps:["Ask for Prior Written Notice of the refusal if you didn't get it. <span class='cite'>§ 300.503</span>","Gather anything showing your concerns: grades, teacher notes, outside reports, discipline records.","Consider a private evaluation as evidence of need. The team must consider it."], opts:["complaint","dueprocess","mediation"]},
+   steps:["Ask for Prior Written Notice of the refusal if you didn't get it. <span class='cite'>34 C.F.R. § 300.503</span>","Gather anything showing your concerns: grades, teacher notes, outside reports, discipline records.","Consider a private evaluation as evidence of need. The team must consider it."], opts:["complaint","dueprocess","mediation"]},
 
  inprogress:{r:1,tone:"go",badge:"Wait and prepare",title:"Let the evaluation finish, then review it",
    body:["Your IEE right applies once the district's evaluation is complete. Ask for the written report a few days before the meeting so you have time to read it."],
@@ -606,7 +606,7 @@ const N = {
 
  old:{r:1,tone:"act",badge:"Timing issue",title:"An older evaluation may need a fresh start",
    body:["Requests tied to evaluations more than two years old are frequently denied as untimely, and results that old may no longer describe your child.","A cleaner route is asking the district for a reevaluation now. Once it's done, you have a full IEE right if you disagree with the new results."],
-   steps:["Request a reevaluation in writing. Districts may reevaluate once a year without agreement, and must at least every three years. <span class='cite'>§ 300.303</span>","Review the new report carefully when it arrives.","If you disagree, request the IEE promptly, ideally within weeks."], opts:["iep"]},
+   steps:["Request a reevaluation in writing. Districts may reevaluate once a year without agreement, and must at least every three years. <span class='cite'>34 C.F.R. § 300.303</span>","Review the new report carefully when it arrives.","If you disagree, request the IEE promptly, ideally within weeks."], opts:["iep"]},
 
  requested:{q:"Have you asked the district, in writing, for an IEE at public expense?", help:"A phone call or comment at a meeting is easy to dispute later. A dated letter or email is not.", a:[["Not yet","sendletter"],["Yes, I've asked","response"]]},
 
@@ -644,11 +644,11 @@ const N = {
 
  rejected:{r:1,tone:"act",badge:"Disagreement continues",title:"The team considered it but won't follow it",
    body:["\"Consider\" does not mean \"adopt.\" But the district must explain in writing what it refused and why. If the IEP still doesn't meet your child's needs, that's a dispute about FAPE, which due process is built to resolve."],
-   steps:["Ask for Prior Written Notice of each recommendation the team rejected. <span class='cite'>§ 300.503</span>","Request mediation if you think an agreement is possible.","Consider due process if the dispute is about services, placement, or eligibility."], opts:["mediation","dueprocess","iep"]},
+   steps:["Ask for Prior Written Notice of each recommendation the team rejected. <span class='cite'>34 C.F.R. § 300.503</span>","Request mediation if you think an agreement is possible.","Consider due process if the dispute is about services, placement, or eligibility."], opts:["mediation","dueprocess","iep"]},
 
  refusedconsider:{r:1,tone:"stop",badge:"Procedural violation",title:"The team refused to consider the IEE",
    body:["If the IEE meets district criteria, the team is required to consider it. Refusing is a clear procedural violation, and a state complaint is often the quickest way to address one."],
-   steps:["Put the refusal in writing: who said what, at which meeting. <span class='cite'>§ 300.502(c)</span>","File a state complaint describing the refusal and asking for a new IEP meeting as a remedy.","If the refusal led to an inadequate IEP, due process may also be appropriate."], opts:["complaint","dueprocess","mediation"]},
+   steps:["Put the refusal in writing: who said what, at which meeting. <span class='cite'>34 C.F.R. § 300.502(c)</span>","File a state complaint describing the refusal and asking for a new IEP meeting as a remedy.","If the refusal led to an inadequate IEP, due process may also be appropriate."], opts:["complaint","dueprocess","mediation"]},
 
  districtdp:{r:1,tone:"act",badge:"Hearing ahead",title:"The district is defending its evaluation",
    body:["This is the district exercising its second option. A hearing officer will decide whether the district's evaluation was appropriate.","If you win, the district pays for the IEE. If the district wins, you can still get an IEE at your own expense, and the team must still consider it."],
@@ -663,12 +663,12 @@ const N = {
    steps:["Ask for the refusal and its reasons in writing (Prior Written Notice).","Reply that the district must either fund the IEE or file for due process.","File a state complaint or your own due process complaint if it does neither."], opts:["complaint","dueprocess","mediation"]},
 
  reason:{r:1,tone:"act",badge:"Know your rights",title:"You don't have to give a reason",
-   body:["The district may ask why you disagree, but you don't have to explain, and it can't delay its decision waiting for your answer. <span class='cite'>§ 300.502(b)(4)</span>","Some parents choose to share their concerns because it can help the evaluator focus. That's a strategic choice, not a requirement."],
+   body:["The district may ask why you disagree, but you don't have to explain, and it can't delay its decision waiting for your answer. <span class='cite'>34 C.F.R. § 300.502(b)(4)</span>","Some parents choose to share their concerns because it can help the evaluator focus. That's a strategic choice, not a requirement."],
    steps:["Reply in writing that you are declining to explain, or share a brief summary if you prefer.","Restate that the district must fund the IEE or file for due process.","If the district keeps waiting, treat it as delay."], opts:["complaint","dueprocess","mediation"]},
 
  criteria:{r:1,tone:"act",badge:"Check the limits",title:"Limits must match the district's own criteria",
    body:["The district can apply the same criteria it uses for its own evaluations: qualifications, location, and reasonable cost. It can't add conditions beyond those, and it must let you show when your child's needs justify going outside them, for example when no qualified evaluator exists within a cost cap or distance limit."],
-   steps:["Ask for the criteria in writing, along with how the cost cap was set.","If no qualified evaluator fits, document your search and request an exception. <span class='cite'>§ 300.502(e)</span>","If the district won't budge, a state complaint or due process can resolve it."], opts:["iep","complaint","dueprocess","mediation"]},
+   steps:["Ask for the criteria in writing, along with how the cost cap was set.","If no qualified evaluator fits, document your search and request an exception. <span class='cite'>34 C.F.R. § 300.502(e)</span>","If the district won't budge, a state complaint or due process can resolve it."], opts:["iep","complaint","dueprocess","mediation"]},
 
  retest:{r:1,tone:"act",badge:"Watch for delay",title:"Re-testing isn't a substitute for an answer",
    body:["Federal guidance indicates a district generally can't require you to agree to new district testing before it responds to an IEE request. It still must fund the IEE or file for due process without unnecessary delay.","You can agree to more testing if you want, but it doesn't erase your IEE request."],
@@ -778,7 +778,7 @@ function renderStates(){
     ["IEE response", s.ieeText, s.ieeCite],
     ["Records access", s.recText, s.recCite],
     ["Hearings and appeals", s.hearText, s.hearCite],
-    ["State complaint", "Violations within the past 1 year; written decision within 60 days", "34 C.F.R. §§ 300.152–153"]
+    ["State complaint", "Violations within the past 1 year; written decision within 60 days", "34 C.F.R. §34 C.F.R. § 300.152–153"]
   ];
   document.getElementById("stateCard").innerHTML = `<div class="st-head"><h2>${curState==="US"?"Federal IDEA rules":s.name}</h2><span class="cite">${curState==="US"?"Applies in every state as the minimum":"State rules layered on federal IDEA"}</span></div>
     <dl class="st-rows">${rows.map(r=>`<div class="st-row"><dt>${r[0]}</dt><dd>${r[1]} <span class="cite">${r[2]}</span></dd></div>`).join("")}</dl>
@@ -851,13 +851,13 @@ const ROWS = [
   ["Best for", {iep:"Getting new data considered; small changes", mediation:"Disputes where a deal is possible", complaint:"Procedural violations: missed timelines, ignored requests, IEP not followed", dueprocess:"Disputes over evaluations, eligibility, services, placement"}],
   ["Can result in", {iep:"A revised IEP", mediation:"Binding written agreement, enforceable in court", complaint:"Corrective action, compensatory services, reimbursement", dueprocess:"IEE at public expense, services, placement, compensatory education, reimbursement"}],
   ["Cost to family", {iep:"Free", mediation:"Free; state pays the mediator", complaint:"Free; no attorney needed", dueprocess:"Free to file; attorneys' fees possible for a prevailing parent"}],
-  ["Citation", {iep:"<span class='cite'>§ 300.324</span>", mediation:"<span class='cite'>§ 300.506</span>", complaint:"<span class='cite'>§§ 300.151–153</span>", dueprocess:"<span class='cite'>§§ 300.507–516</span>"}]
+  ["Citation", {iep:"<span class='cite'>34 C.F.R. § 300.324</span>", mediation:"<span class='cite'>34 C.F.R. § 300.506</span>", complaint:"<span class='cite'>34 C.F.R. §§ 300.151–153</span>", dueprocess:"<span class='cite'>34 C.F.R. §§ 300.507–516</span>"}]
 ];
 const PAIRS = [
-  [["complaint","dueprocess"],"warn","State complaint + due process","If both raise the same issue, the state sets that part of the complaint aside until the hearing ends, and the hearing decision controls it. Issues that are only in the complaint go forward on the 60-day timeline. <span class='cite'>§ 300.152(c)</span>"],
+  [["complaint","dueprocess"],"warn","State complaint + due process","If both raise the same issue, the state sets that part of the complaint aside until the hearing ends, and the hearing decision controls it. Issues that are only in the complaint go forward on the 60-day timeline. <span class='cite'>34 C.F.R. § 300.152(c)</span>"],
   [["mediation","dueprocess"],"","Mediation + due process","Mediation can replace the resolution meeting if both sides agree, and a signed agreement can end the hearing. Hearing timelines keep running unless adjusted."],
-  [["mediation","complaint"],"","Mediation + state complaint","The 60-day complaint timeline can be extended if both sides agree to try mediation first. <span class='cite'>§ 300.152(b)</span>"],
-  [["iep","dueprocess"],"","IEP meeting + due process","When a parent files, the district must hold a resolution meeting with relevant IEP team members within 15 days. Your child stays in the current placement during the hearing (stay-put). <span class='cite'>§§ 300.510, 300.518</span>"],
+  [["mediation","complaint"],"","Mediation + state complaint","The 60-day complaint timeline can be extended if both sides agree to try mediation first. <span class='cite'>34 C.F.R. § 300.152(b)</span>"],
+  [["iep","dueprocess"],"","IEP meeting + due process","When a parent files, the district must hold a resolution meeting with relevant IEP team members within 15 days. Your child stays in the current placement during the hearing (stay-put). <span class='cite'>34 C.F.R. §§ 300.510, 300.518</span>"],
   [["iep","complaint"],"","IEP meeting + state complaint","You can keep meeting with the team while the complaint is investigated. A new agreement at the table doesn't automatically withdraw the complaint."],
   [["iep","mediation"],"","IEP meeting + mediation","Agreements reached in mediation are often written into the IEP at a follow-up meeting."]
 ];
@@ -916,7 +916,7 @@ L("copyBtn").addEventListener("click",()=>{
 const NOFED = "No federal or state law found that adds to the general rule. Ask for the district's written criteria and whether its own evaluators meet the same requirement.";
 const RB = [
  {g:"Contract and paperwork", id:"contract", wide:1, t:"The district will only use its own contract", said:"We can only proceed on the district's standard vendor agreement.",
-  law:"An IEE is defined by its independence. It's done by a qualified examiner who doesn't work for the district, the parents choose that examiner, and the results can be used as evidence at a hearing <span class='cite'>34 C.F.R. § 300.502(a)(3), (c)</span>. Many district contracts are blanket vendor agreements written for ordinary purchases, and some contain terms that hand the district control over the evaluator.<br><br>Using a contract to pay an evaluator isn't a violation by itself; Colorado upheld one district's agreement while striking extra conditions it added (SC2025-609). What crosses the line are terms that let the district shape the findings, limit who the evaluator talks to, or hold payment over the report. Those are conditions beyond the criteria the regulation allows <span class='cite'>§ 300.502(e)</span>.",
+  law:"An IEE is defined by its independence. It's done by a qualified examiner who doesn't work for the district, the parents choose that examiner, and the results can be used as evidence at a hearing <span class='cite'>34 C.F.R. § 300.502(a)(3), (c)</span>. Many district contracts are blanket vendor agreements written for ordinary purchases, and some contain terms that hand the district control over the evaluator.<br><br>Using a contract to pay an evaluator isn't a violation by itself; Colorado upheld one district's agreement while striking extra conditions it added (SC2025-609). What crosses the line are terms that let the district shape the findings, limit who the evaluator talks to, or hold payment over the report. Those are conditions beyond the criteria the regulation allows <span class='cite'>34 C.F.R. § 300.502(e)</span>.",
   ask:"Ask the district to sign the evaluator's IEE agreement, or to name the specific terms in it the district objects to. Don't let the IEE sit while contract forms go back and forth.",
   flags:[
    ["edit","The district can require changes to the report","terms allowing the district to require changes to the evaluator's report"],
@@ -950,7 +950,7 @@ const RB = [
   ask:"Sign a release for the evaluator and ask the district to share records on that basis instead.",
   p:e=>`The district has asked that the evaluator be designated a "school official." I have provided, or will provide, written consent for the district to share my child's records with ${e}, which FERPA permits (34 C.F.R. § 99.30). Please proceed on that basis.`},
  {g:"Contract and paperwork", id:"packet", wide:1, flagLabel:"Requirements districts pile on", t:"Vendor packets, trainings and approvals", said:"Before we can contract, complete our vendor application, watch our workplace training video, sign the drug-free workplace form and get fingerprinted. Then we'll issue a purchase order.",
-  law:"<b>The evaluators are employees of the evaluation company, not the district.</b> At CDA, practitioners are employed by CDA, which handles its own hiring, background clearance and workplace policies. District onboarding, such as training videos and drug-free workplace forms, is a condition of being a district employee. An IEE examiner is, by definition, someone the district does not employ <span class='cite'>34 C.F.R. § 300.502(a)(3)(i)</span>.<br><br>The criteria a district may apply are about the evaluation itself: where it takes place, the examiner's qualifications and reasonable cost <span class='cite'>§ 300.502(e)</span>. Employee onboarding isn't one of them. What an outside evaluator reasonably provides is a W-9 and a certificate of insurance.<br><br><b>Vendor approval and purchase orders</b> are how the district pays its bills. Once it approves an IEE, the district must make sure the evaluation happens without unnecessary delay, so its internal steps can't hold up your child's evaluation.",
+  law:"<b>The evaluators are employees of the evaluation company, not the district.</b> At CDA, practitioners are employed by CDA, which handles its own hiring, background clearance and workplace policies. District onboarding, such as training videos and drug-free workplace forms, is a condition of being a district employee. An IEE examiner is, by definition, someone the district does not employ <span class='cite'>34 C.F.R. § 300.502(a)(3)(i)</span>.<br><br>The criteria a district may apply are about the evaluation itself: where it takes place, the examiner's qualifications and reasonable cost <span class='cite'>34 C.F.R. § 300.502(e)</span>. Employee onboarding isn't one of them. What an outside evaluator reasonably provides is a W-9 and a certificate of insurance.<br><br><b>Vendor approval and purchase orders</b> are how the district pays its bills. Once it approves an IEE, the district must make sure the evaluation happens without unnecessary delay, so its internal steps can't hold up your child's evaluation.",
   ask:"Ask the district to sign the evaluator's IEE agreement. With the W-9 and certificate of insurance in hand, a signed agreement is all that's needed to schedule the evaluation. Anything else, like vendor approval or purchase orders, is for the district to handle on its own side. If it won't sign, the delay itself can be raised in a state complaint, and you can pay privately and seek reimbursement, which needs no vendor setup at all.",
   flags:[
    ["vendorapp","Apply and be approved as a district vendor","approval as a district vendor before the evaluation can be scheduled"],
