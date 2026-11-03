@@ -1,0 +1,1251 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>IEE Navigator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a working case-file tool. Tabs across the top, one working surface below; the navigator pairs a question card with the trail of answers so far. */
+:root{
+  --bg:#EEF2F7; --surface:#FFFFFF; --sunk:#E2E8F1; --ink:#111F33; --muted:#4F5F75; --line:#CED8E5;
+  --accent:#1C58A8; --accent-ink:#FFFFFF; --accent-soft:#DCE7F7;
+  --go:#2A7540; --go-soft:#DCEEDF; --act:#9A5900; --act-soft:#FAEAD0; --stop:#A23131; --stop-soft:#F6DDDB;
+  --display:"Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0B1320; --surface:#131E2E; --sunk:#0E1726; --ink:#E3EAF4; --muted:#93A3BA; --line:#26354B;
+  --accent:#6EA6F0; --accent-ink:#071A35; --accent-soft:#17294A;
+  --go:#7CCB8F; --go-soft:#183324; --act:#F0B35A; --act-soft:#3A2A12; --stop:#F08A82; --stop-soft:#3D1D1B; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0B1320; --surface:#131E2E; --sunk:#0E1726; --ink:#E3EAF4; --muted:#93A3BA; --line:#26354B;
+  --accent:#6EA6F0; --accent-ink:#071A35; --accent-soft:#17294A;
+  --go:#7CCB8F; --go-soft:#183324; --act:#F0B35A; --act-soft:#3A2A12; --stop:#F08A82; --stop-soft:#3D1D1B; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:28px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+p{margin:0}
+.cite{font-family:var(--mono);font-size:.78em;color:var(--muted);white-space:nowrap}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+header{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:20px;row-gap:10px;margin-bottom:22px;align-items:start}
+header>*:not(.logo){grid-column:1}
+.logo{grid-column:2;grid-row:1/span 3;width:clamp(110px,22vw,230px);height:auto;background:#fff;border-radius:10px;padding:6px}
+@media (max-width:520px){header{grid-template-columns:minmax(0,1fr) 96px;column-gap:12px}.logo{width:96px}}
+
+.brand{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(34px,6vw,52px);font-weight:700;letter-spacing:-.02em}
+h1 span{color:var(--accent)}
+.lede{max-width:62ch;color:var(--muted);font-size:17px}
+
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:24px}
+nav.tabs a{font-family:var(--display);font-weight:500;font-size:15px;text-decoration:none;color:var(--muted);padding:10px 14px;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav.tabs a[aria-current="page"]{color:var(--ink);border-color:var(--accent)}
+nav.tabs a:hover{color:var(--ink)}
+
+/* Navigator */
+.nav-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;align-items:start}
+@media (max-width:820px){.nav-grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px}
+.step-tag{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px}
+.q{font-size:clamp(22px,3.4vw,28px);font-weight:700;margin-bottom:10px}
+.help{color:var(--muted);max-width:60ch;margin-bottom:20px}
+.answers{display:grid;gap:10px}
+.ans{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:16px;transition:border-color .15s,background .15s}
+.ans:hover{border-color:var(--accent);background:var(--accent-soft)}
+.ans::after{content:"→";font-family:var(--display);color:var(--accent);flex:none}
+.ctrl{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;font-size:14px}
+.btn:hover{border-color:var(--ink)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+
+.result{border-left:6px solid var(--tone);}
+.result .badge{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:99px;background:var(--tone-soft);color:var(--tone);margin-bottom:12px}
+.result h2{font-size:clamp(22px,3.4vw,28px);margin-bottom:12px}
+.result .body{display:grid;gap:10px;max-width:64ch}
+.result h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 10px;font-weight:500}
+ol.steps{margin:0;padding-left:22px;display:grid;gap:8px;max-width:64ch}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--accent);color:var(--accent);background:transparent;border-radius:99px;padding:6px 12px;font-size:14px;font-weight:700}
+.chip:hover{background:var(--accent-soft)}
+.t-go{--tone:var(--go);--tone-soft:var(--go-soft)}
+.t-act{--tone:var(--act);--tone-soft:var(--act-soft)}
+.t-stop{--tone:var(--stop);--tone-soft:var(--stop-soft)}
+
+.trail h3{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;margin-bottom:12px}
+.trail ol{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.trail li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;font-size:14px}
+.trail .n{font-family:var(--mono);font-size:12px;color:var(--accent);padding-top:2px}
+.trail .tq{color:var(--muted)}
+.trail .ta{font-weight:700}
+.trail .empty{color:var(--muted);font-size:14px}
+
+/* Basics */
+.basics{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:28px}
+@media (max-width:820px){.basics{grid-template-columns:1fr}}
+.prose{display:grid;gap:14px;max-width:64ch}
+.prose h2{font-size:26px;margin-top:8px}
+.prose h3{font-size:19px;margin-top:10px}
+.rules{display:grid;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;align-self:start}
+.rules h3{font-size:15px;padding:16px 18px;border-bottom:1px solid var(--line);background:var(--sunk)}
+.rule{padding:14px 18px;border-bottom:1px solid var(--line);display:grid;gap:4px}
+.rule:last-child{border-bottom:0}
+.rule b{font-family:var(--display);font-weight:700}
+.rule p{font-size:14px;color:var(--muted)}
+
+/* Options */
+.opt-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
+@media (max-width:860px){.opt-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:440px){.opt-grid{grid-template-columns:1fr}}
+.opt{text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:6px;align-content:start}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt .k{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.opt b{font-family:var(--display);font-size:18px}
+.opt span.s{font-size:14px;color:var(--muted)}
+.opt .tick{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}
+.combo{margin-bottom:24px}
+.combo h2{font-size:22px;margin-bottom:12px}
+.notes{display:grid;gap:10px}
+.note{border-left:4px solid var(--accent);background:var(--surface);padding:12px 16px;border-radius:0 8px 8px 0}
+.note b{font-family:var(--display)}
+.note.warn{border-color:var(--act)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+thead th{font-family:var(--display);font-size:15px;background:var(--sunk)}
+tbody th{font-weight:700;color:var(--muted);width:140px;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+tr:last-child td,tr:last-child th{border-bottom:0}
+.sel{background:var(--accent-soft)}
+
+/* Letter */
+.letter-grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.letter-grid{grid-template-columns:1fr}}
+.form{display:grid;gap:14px}
+label.f{display:grid;gap:5px;font-size:14px;font-weight:700}
+input[type=text],input[type=date],select{font:inherit;font-weight:400;font-size:15px;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--ink);width:100%}
+.checks{display:grid;gap:8px;font-size:14px}
+.checks label{display:flex;gap:8px;align-items:flex-start}
+.box{border:1px solid var(--line);border-radius:8px;padding:12px 14px 14px;margin:0;display:grid;gap:10px;min-width:0}
+.box legend{font-family:var(--display);font-weight:700;font-size:15px;padding:0 6px}
+.hint{font-size:13px;color:var(--muted)}
+.radios,.evgrid{display:grid;gap:7px;font-size:14px}
+.evgrid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;font-size:13.5px}
+@media (max-width:400px){.evgrid{grid-template-columns:1fr}}
+.radios label,.evgrid label{display:flex;gap:7px;align-items:flex-start;line-height:1.35}
+.radios input,.evgrid input{margin-top:2px;flex:none;accent-color:var(--accent)}
+.sample{font-family:var(--mono);font-size:12px;color:var(--act);background:var(--act-soft);padding:4px 9px;border-radius:6px;justify-self:start}
+.paper{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:32px clamp(18px,4vw,40px);font-family:var(--body);white-space:pre-wrap;line-height:1.65;min-width:0;overflow-wrap:anywhere;box-shadow:0 1px 0 var(--line),0 10px 24px -18px rgba(0,0,0,.35)}
+.copyrow{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.copied{font-size:14px;color:var(--go)}
+
+/* Deadlines */
+.dl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.dl-grid{grid-template-columns:1fr}}
+.dl h2{font-size:19px;margin-bottom:4px}
+.dl .sub{font-size:14px;color:var(--muted);margin-bottom:12px}
+.dl ul{list-style:none;padding:0;margin:14px 0 0;display:grid;gap:0}
+.dl li{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14px}
+.dl li b{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.elapsed{margin-top:14px;display:grid;gap:8px}
+.bar{height:10px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--tone);border-radius:99px}
+.elapsed p{font-size:14px}
+
+.statebar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px;margin-bottom:18px}
+.statebar label{font-family:var(--display);font-weight:700}
+.statebar select{width:auto;min-width:220px;max-width:100%}
+.statebar p{flex:1 1 260px;min-width:0;font-size:14px;color:var(--muted)}
+.stnote{background:var(--accent-soft);border-radius:8px;padding:12px 14px;max-width:64ch;margin-top:14px;font-size:15px}
+a.consult{display:inline-block;text-decoration:none;font-size:15px;padding:10px 16px}
+header>div:not(.brand){grid-column:1}
+.rb a{color:var(--accent);font-weight:700}
+.stnote b{font-family:var(--display);display:block;margin-bottom:3px;color:var(--accent)}
+.st-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:16px}
+.st-head h2{font-size:clamp(24px,4vw,32px)}
+.st-rows{display:grid;gap:0}
+.st-row{display:grid;grid-template-columns:180px minmax(0,1fr);gap:4px 18px;padding:12px 0;border-top:1px solid var(--line)}
+@media (max-width:600px){.st-row{grid-template-columns:1fr}}
+.st-row dt{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;padding-top:2px}
+.st-row dd{margin:0}
+.st-notes{display:grid;gap:10px;margin-top:16px}
+h2.sect{font-size:22px;margin:30px 0 12px}
+#stTable tbody tr{cursor:pointer}
+#stTable tbody tr:hover td,#stTable tbody tr:hover th{background:var(--sunk)}
+#stTable tbody th{width:auto;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+.dl li.plain b{font-family:var(--body);font-weight:400;white-space:normal;text-align:right}
+.filepanel{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;margin-bottom:20px}
+@media (max-width:820px){.filepanel{grid-template-columns:1fr}}
+.filepanel h2{font-size:22px;margin-bottom:4px}
+.filepanel .agency{color:var(--muted);font-size:14px;margin-bottom:16px}
+.links{display:grid;gap:10px}
+.flink{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;text-decoration:none;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.flink:hover{border-color:var(--accent);background:var(--accent-soft)}
+.flink b{font-family:var(--display);display:block}
+.flink span.d{font-size:13px;color:var(--muted)}
+.flink .arr{font-family:var(--display);color:var(--accent);font-size:18px}
+.checklist h3{font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;margin-bottom:10px}
+.checklist ul{margin:0;padding-left:20px;display:grid;gap:6px;font-size:14px}
+.tl{margin-bottom:22px}
+.tl-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px}
+.tl-head h2{font-size:22px}
+.tl ol{list-style:none;margin:0;padding:0;display:grid;gap:0;border-left:2px solid var(--line);margin-left:6px}
+.tl li{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:4px 14px;align-items:baseline;padding:10px 0 10px 18px;position:relative}
+.tl li::before{content:"";position:absolute;left:-7px;top:16px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--tone)}
+@media (max-width:560px){.tl li{grid-template-columns:minmax(0,1fr) auto}.tl .dt{grid-column:1/-1}}
+.tl .dt{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.tl .lab{font-size:15px}
+.tl .lab small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.tl .pill{font-family:var(--mono);font-size:12px;padding:3px 9px;border-radius:99px;background:var(--tone-soft);color:var(--tone);white-space:nowrap}
+.tl .empty{padding:10px 18px;color:var(--muted);font-size:14px}
+.ap-intro{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;margin-bottom:22px}
+@media (max-width:820px){.ap-intro{grid-template-columns:1fr}}
+.ap-intro h2{font-size:clamp(24px,4vw,32px);margin-bottom:10px}
+.ap-intro .prose p{color:var(--ink)}
+.law{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:0 var(--r) var(--r) 0;padding:16px 18px;display:grid;gap:8px;align-self:start}
+.law b{font-family:var(--display)}
+.law p{font-size:14px}
+.flow{list-style:none;margin:0 0 24px;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+@media (max-width:860px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:420px){.flow{grid-template-columns:1fr}}
+.flow li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;gap:4px;align-content:start}
+.flow .n{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.flow b{font-family:var(--display);font-size:15px;line-height:1.25}
+.flow span.w{font-size:13px;color:var(--muted)}
+.flow li.hot{border:2px solid var(--act);background:var(--act-soft)}
+.flow li.hot .n,.flow li.hot span.w{color:var(--act)}
+h2.sect2{font-size:22px;margin:6px 0 6px}
+.rb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 26px}
+@media (max-width:820px){.rb-grid{grid-template-columns:1fr}}
+.rb{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px;align-content:start}
+.rb.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.rb-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.rb h3{font-size:17px}
+.rb .said{font-style:italic;color:var(--muted);font-size:14px}
+.rb dl{margin:0;display:grid;gap:8px}
+.rb dt{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.rb dd{margin:0;font-size:14px}
+.tog{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;white-space:nowrap;color:var(--accent);cursor:pointer}
+.tog input{accent-color:var(--accent);width:16px;height:16px}
+.wait{display:grid;gap:8px;margin-top:4px}
+.rb-group{margin:18px 0 6px}
+.rb-group h3.gh{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;margin:0 0 10px;font-family:var(--body)}
+.rb-group .rb-grid{margin:0 0 8px}
+.rb.wide{grid-column:1/-1}
+.flags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;font-size:14px}
+@media (max-width:600px){.flags{grid-template-columns:1fr}}
+.flags label{display:flex;gap:7px;align-items:flex-start;line-height:1.35}
+.flags input{margin-top:2px;flex:none;accent-color:var(--accent)}
+.rb-state{font-size:13px;background:var(--accent-soft);border-radius:6px;padding:8px 10px}
+.rb-state b{color:var(--accent);font-family:var(--display)}
+.reimb{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;margin:8px 0 28px}
+@media (max-width:820px){.reimb{grid-template-columns:1fr}}
+.reimb h3{font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin:0 0 8px;font-family:var(--body)}
+.reimb ul,.reimb ol{margin:0 0 16px;padding-left:20px;display:grid;gap:6px;font-size:15px}
+.reimb .lead{font-size:16px;margin-bottom:14px;max-width:64ch}
+.atty{background:var(--act-soft);border:1px solid var(--act);border-radius:8px;padding:14px 16px;display:grid;gap:6px}
+.atty b{font-family:var(--display);color:var(--act);font-size:16px}
+.atty p{font-size:14px}
+footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:6px;max-width:80ch}
+.fine{font-size:13px;color:var(--muted);margin-top:16px;max-width:70ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <img class="logo" src="data:image/png;base64,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OtQwBv263W5vbW11Op2iKFqtVvqEVxQYE8a4w3fv3u1wONS40d133x3MRsFITEx84IEH/vSnP916660bN2681NcuLi7evXt3RUUFjabQ+ITFYlm8ePH111+fkZFxefP/ww8/3LdvX29vL92QCKGUlJQbbrhh06ZNNpvthz/8od1uxxjn5eU9/vjjwcfE9773vb6+PkJIUlLSE088YbFYTp48uXfv3qqqKr/fT4NhOp1u/fr1n/3sZ4etIafT+eMf/7i1tZWq7L785S9v2rSJ/ujll1/eu3evGkrhOM7pdP7Hf/wHXUm333775z73OfV93n777XfeeYeq7LKysp544gn6qvPnz//hD3+ga0gQhP/+7/9OS0sb+fV37ty5Y8cOURQlSbrxxhtHXn7b2tp2795dVFTU19dHsxwQQlqtNisra9OmTatWrbrGu9KlZIGrV6/2eDz/93//R2fE6/UeOHAgLy9P/Ti73f5f//Vfqsru0UcfXb58+bA1ff78+RMnTlRUVNAZpGuD47iYmJilS5du2bIlOTn58jennTt3njt3zuPxqF88Pz//9ttvz8rK2rdv34svvkglAN/4xjeCb6YnT578/e9/T8VOt9xyyz333DMwMLB79+5jx451dXWpw5iQkHDPPfdcxsC12+179uw5fvx4d3e3+ipRFGfPnr1hw4Z169ZdhpZOnTr17rvv1tXVqV5NhJDVap03b97GjRvz8/ODv+ZPf/rTQCAgSRLd8KIo7tix46233qL3xd/85jcqi3R2dv7kJz9RVXaPPfbY4sWLRyXR/fv3Hz58uK2tTZZlNTCckJCwYsWKzZs3x8bGXt2C6enpKS8v53leUZTY2NjPf/7zTz31VF9fH8/zZ8+evfPOOy9/DT1z5sy7775bXV0tSRJ9KnpW0GEZNfWiv7//vffeO3r0qM1mU20yURSTkpKWL1++cePGS2lB3W73vn37jhw50tbWpkbHeZ5PTk5eu3btpk2bLn8r8nq9hw4dOnjwYHNzc/AYxsbGrlixYuvWrXFxccNesmPHjl27dtGFl5+f/61vfWsYx3R3d584ceLMmTMtLS0+n0/9OjqdLjMzk+7oYcdsTU3ND37wA1EUA4EAPVtEUfzb3/724osvyrI8a9asJ554YuQXwRgfP3583759NTU1gUBAHeqoqKhly5Zt3bo1JSXlUl+8srLy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gwfH6BE9efIk9c/LspycnLxp06b58+cv/Djy8vJuvPHGyMhIuqmD/b2qz+qXv/xlc3PzSEfTwoUL6UobNixer/fpp59+7733Rj7nnDlzEhMT1UpC6qkaERFx3XXXqeWYa2pq/vKXvwTL+h0Ox1/+8pfKykpqrCiKsmbNGlVKp9fradFOKsBraWl59tlng7lncHDw5ZdffuKJJx5//PFf/epX+/btu1TA4lIz6/V629vbh/17aWlpcXGxGqx1u91ut/syb1JZWen3+2VZ7u7uVqdYFMX169erSUi0JB2M1urhv/7rv370ox/t2LFj2JOUlpb+9Kc/pfrDYY70/Pz84CScsfDlFQTEFi9efM899/ztb3+jVjYh5OjRo0VFRSkpKREREbQf0sDAAC2vQk3OjIyM++67T534tLS0LVu27NixgwpgOjo6fvrTny5fvjw1NRVjXF1dfebMGXoEU0P1jjvuCDbxkpOTN27c+Nprr1GKdrvdv/vd744dOzZ37lytVtve3n7ixAm73T4uBa3havUIwc7o3/72t7QARFNT01NPPXVFuk+dTrd48eL6+nrqlNi9ezfd2xkZGaM6VTQazfbt2+vr66kjtKGh4Wc/+9mnPvWp/Px8rVZLy169+eabzc3NCCGaG19YWHilzE2vAi+++OLrr7+uUoXL5fJ4PHTK6MIIBAKrVq3avn372N959uzZ1O8hCEJdXd1zzz13xx13REVFSZJUXV39/vvvnzx5Ug0UYYxfffXV9PR0NZq9adOmw4cPNzc3qzX0fvCDHyxfvjwxMVGSpLKysvPnz1N1zATdP2655ZazZ8/29/fTwPtbb71VWVlZUFBgMplsNtupU6c6OjropwcCgUWLFgWnCnZ3d7/xxhsdHR2lpaWrV69eunRpdnY2PSNonVz1xpaamhq8vIPNXI1Gc+TIka6uLqPRWFNTs2TJkq997WtjefhNmzYdO3astraW7sojR440NzcvW7aMVmooLi6myuyOjo6mpqby8vK8vLxPdLz09/er1S8JIQsXLrxUNn1cXFxubi7NheI4rqio6I477qC6AJvNtmPHjubm5rKyslWrVi1btiwnJ4e6DTo7O2nRLyo6TUlJUX0Ge/fuPXLkyLFjx44cObJu3br8/Py4uDh6hz5+/HhdXZ0aMwuWFF5//fXHjx+n64fn+f379zc2Ni5btiwi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" alt="Cognitive Diagnostic Associates (CDA) logo">
+    <div class="brand">Cognitive Diagnostic Associates · Family Resource</div>
+    <h1>IEE <span>Navigator</span></h1>
+    <p class="lede">Disagree with your child's school evaluation? Answer a few yes-or-no questions to see where you stand, which dispute options fit, and what to send next.</p>
+    <div><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_blank" rel="noopener">Schedule a free 15-minute consultation</a></div>
+  </header>
+
+  <div class="statebar">
+    <label for="stateSel">Your state</label>
+    <select id="stateSel"></select>
+    <p id="stateLine"></p>
+  </div>
+
+  <nav class="tabs" aria-label="Sections">
+    <a href="#navigator">Find my path</a>
+    <a href="#basics">How IEEs work</a>
+    <a href="#states">State rules</a>
+    <a href="#options">Compare options</a>
+    <a href="#letter">Request letter</a>
+    <a href="#approved">After approval</a>
+    <a href="#deadlines">Deadlines</a>
+  </nav>
+
+  <!-- NAVIGATOR -->
+  <section id="v-navigator" data-view="navigator">
+    <div class="nav-grid">
+      <div id="stage"></div>
+      <aside class="card trail" aria-live="polite">
+        <h3>Your answers</h3>
+        <div id="trail"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- BASICS -->
+  <section id="v-basics" data-view="basics" hidden>
+    <div class="basics">
+      <div class="prose">
+        <h2>What an IEE is</h2>
+        <p>An independent educational evaluation is an evaluation of your child done by a qualified examiner who does not work for the school district. Federal special education law (IDEA) gives parents the right to ask for one, at public expense, when they disagree with an evaluation the district completed.</p>
+        <p>"At public expense" means the district pays the full cost or makes sure the evaluation is provided at no cost to you.</p>
+
+        <h3>What happens when you ask</h3>
+        <p>Once you ask, the district has two choices. It must, without unnecessary delay, either pay for the IEE or file for a due process hearing to prove its own evaluation was appropriate. Saying no and doing nothing is not one of the choices.</p>
+        <p>The district may ask why you disagree, but you do not have to explain, and it cannot hold up its answer waiting for one.</p>
+
+        <h3>Rules the district can set</h3>
+        <p>The district can require the IEE to meet the same criteria it uses for its own evaluations, such as examiner qualifications, location, and reasonable cost. It must tell you what those criteria are and where an IEE can be obtained. It cannot add extra conditions, and it has to let you show when your child's needs justify an exception.</p>
+
+        <h3>After the IEE</h3>
+        <p>The IEP team must consider the results of any IEE that meets district criteria, including one you paid for yourself. Considering is not the same as adopting, but the team cannot ignore it. An IEE can also be used as evidence at a due process hearing, and a hearing officer can order one.</p>
+
+        <h3>How many you get</h3>
+        <p>You are entitled to one IEE at public expense each time the district conducts an evaluation you disagree with. If the district goes to hearing and wins, you can still get an IEE, but not at public expense.</p>
+
+        <h3>Where CDA fits</h3>
+        <p>Cognitive Diagnostic Associates provides independent evaluations, reviews district reports and test data, and offers expert testimony when a disagreement reaches due process. A strong IEE is thorough enough to answer the questions the district evaluation left open and clear enough for an IEP team or hearing officer to act on.</p>
+      </div>
+      <div class="rules">
+        <h3>The rules at a glance</h3>
+        <div class="rule"><b>Right to an IEE</b><p>Parent disagrees with a district evaluation. <span class="cite">34 C.F.R. § 300.502(b)</span></p></div>
+        <div class="rule"><b>District must act</b><p>Fund the IEE or file for due process, without unnecessary delay. <span class="cite">§ 300.502(b)(2)</span></p></div>
+        <div class="rule"><b>No explanation required</b><p>District may ask; parent need not answer. <span class="cite">§ 300.502(b)(4)</span></p></div>
+        <div class="rule"><b>Same criteria only</b><p>No conditions beyond those for district evaluations. <span class="cite">§ 300.502(e)</span></p></div>
+        <div class="rule"><b>Results must be considered</b><p>Includes parent-funded IEEs that meet criteria. <span class="cite">§ 300.502(c)</span></p></div>
+        <div class="rule"><b>One per evaluation</b><p>Per district evaluation the parent disagrees with. <span class="cite">§ 300.502(b)(5)</span></p></div>
+        <div class="rule"><b>FBAs count</b><p>Federal guidance treats an FBA as an evaluation, so IEE rights apply. <span class="cite">OSEP, Letter to Baus (2015)</span></p></div>
+        <div class="rule"><b>Notice of refusal</b><p>District must explain refusals in writing. <span class="cite">§ 300.503</span></p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPTIONS -->
+  <section id="v-options" data-view="options" hidden>
+    <p class="help" style="margin-bottom:16px">Pick any combination. Families often use more than one at once, and some pairings have rules about how they interact.</p>
+    <div class="opt-grid" id="optGrid"></div>
+    <div class="combo">
+      <h2 id="comboTitle">Your combination</h2>
+      <div class="notes" id="comboNotes"></div>
+    </div>
+    <div class="tablewrap"><table id="cmp"></table></div>
+    <p class="fine">Due process rows reflect the state selected at the top. Check your state education agency's procedural safeguards notice for anything not shown.</p>
+  </section>
+
+  <!-- LETTER -->
+  <section id="v-letter" data-view="letter" hidden>
+    <div class="letter-grid">
+      <div class="card form">
+        <span class="sample">Sample details. Replace with yours.</span>
+        <label class="f">Your name <input type="text" id="lParent" value="Alex Rivera"></label>
+        <label class="f">Child's name <input type="text" id="lChild" value="Jordan Rivera"></label>
+        <label class="f">School <input type="text" id="lSchool" value="Lincoln Elementary"></label>
+        <label class="f">School district <input type="text" id="lDistrict" value="Harbor Unified School District"></label>
+        <fieldset class="box">
+          <legend>Type of evaluation</legend>
+          <div class="radios">
+            <label><input type="radio" name="lOcc" id="occ-initial" value="initial evaluation"> Initial evaluation</label>
+            <label><input type="radio" name="lOcc" id="occ-tri" value="three-year (triennial) reevaluation" checked> Three-year (triennial) reevaluation</label>
+            <label><input type="radio" name="lOcc" id="occ-annual" value="annual review assessment"> Annual review assessment</label>
+            <label><input type="radio" name="lOcc" id="occ-addendum" value="assessment addendum"> Assessment addendum</label>
+            <label><input type="radio" name="lOcc" id="occ-amend" value="assessment completed for an IEP amendment"> IEP amendment assessment</label>
+            <label><input type="radio" name="lOcc" id="occ-otherre" value="reevaluation"> Other reevaluation</label>
+          </div>
+        </fieldset>
+        <fieldset class="box">
+          <legend>Assessments you disagree with</legend>
+          <p class="hint">Check every area. The letter requests an IEE in each one.</p>
+          <div class="evgrid">
+            <label><input type="checkbox" class="ev" id="ev-0" value="Psychoeducational" checked> Psychoeducational</label>
+            <label><input type="checkbox" class="ev" id="ev-1" value="School neuropsychological"> School neuropsychological</label>
+            <label><input type="checkbox" class="ev" id="ev-2" value="Academic achievement"> Academic achievement</label>
+            <label><input type="checkbox" class="ev" id="ev-3" value="Speech and language" checked> Speech and language</label>
+            <label><input type="checkbox" class="ev" id="ev-4" value="AAC (augmentative and alternative communication)"> AAC (augmentative and alternative communication)</label>
+            <label><input type="checkbox" class="ev" id="ev-5" value="Assistive technology (AT)"> Assistive technology (AT)</label>
+            <label><input type="checkbox" class="ev" id="ev-6" value="Occupational therapy (OT)"> Occupational therapy (OT)</label>
+            <label><input type="checkbox" class="ev" id="ev-7" value="Physical therapy (PT)"> Physical therapy (PT)</label>
+            <label><input type="checkbox" class="ev" id="ev-8" value="Adapted physical education (APE)"> Adapted physical education (APE)</label>
+            <label><input type="checkbox" class="ev" id="ev-9" value="Health / nursing"> Health / nursing</label>
+            <label><input type="checkbox" class="ev" id="ev-10" value="Functional behavior assessment (FBA)"> Functional behavior assessment (FBA)</label>
+            <label><input type="checkbox" class="ev" id="ev-11" value="1:1 support / aide need"> 1:1 support / aide need</label>
+            <label><input type="checkbox" class="ev" id="ev-12" value="Social-emotional / mental health"> Social-emotional / mental health</label>
+            <label><input type="checkbox" class="ev" id="ev-13" value="Auditory processing"> Auditory processing</label>
+            <label><input type="checkbox" class="ev" id="ev-14" value="Audiology"> Audiology</label>
+            <label><input type="checkbox" class="ev" id="ev-15" value="Vision / orientation and mobility"> Vision / orientation and mobility</label>
+            <label><input type="checkbox" class="ev" id="ev-16" value="Transition"> Transition</label>
+            <label><input type="checkbox" class="ev" id="ev-17" value="Transportation"> Transportation</label>
+          </div>
+          <label class="f" style="font-weight:400">Other assessment (optional) <input type="text" id="lOther" placeholder="e.g. dyslexia screening"></label>
+        </fieldset>
+        <label class="f">Date of the evaluation report <input type="date" id="lEvalDate"></label>
+        <div class="checks">
+          <label><input type="checkbox" id="lCriteria" checked> Ask for the district's IEE criteria and evaluator list</label>
+          <label><input type="checkbox" id="lRecords" checked> Ask for a copy of my child's records</label>
+          <label><input type="checkbox" id="lWritten" checked> Ask for a written response</label>
+        </div>
+      </div>
+      <div style="min-width:0">
+        <div class="paper" id="paper"></div>
+        <div class="copyrow">
+          <button class="btn primary" id="copyBtn" type="button">Copy letter</button>
+          <span class="copied" id="copied" hidden>Copied</span>
+        </div>
+        <p class="fine">Send it by email and keep the sent copy, or deliver it in person and ask for a date-stamped copy. Your written request date starts the clock on the district's response.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AFTER APPROVAL -->
+  <section id="v-approved" data-view="approved" hidden>
+    <div class="ap-intro">
+      <div class="prose">
+        <h2>Approved, but nothing's happening?</h2>
+        <p>Once the district approves your IEE in a Prior Written Notice, the evaluator you chose has to sign an agreement with the district before testing can start. That step happens between the evaluator and the district, so families usually don't see it.</p>
+        <p>This is where IEEs most often stall. A district may respond with new requirements, one at a time, while weeks pass. If your evaluator seems slow to schedule, this is usually why.</p>
+      </div>
+      <div class="law">
+        <b>The rule that applies</b>
+        <p>A district may require an IEE to meet the same criteria it uses for its own evaluations, including the location of the evaluation and the examiner's qualifications. Beyond that, it may not impose other conditions or timelines. <span class="cite">34 C.F.R. § 300.502(e)</span></p>
+        <p>Federal guidance repeats it: the district "is prohibited from imposing other conditions or timelines." <span class="cite">OSEP, Letter to Savit (2016)</span></p>
+      </div>
+    </div>
+
+    <ol class="flow">
+      <li><span class="n">Step 1</span><b>District approves the IEE</b><span class="w">Usually in a Prior Written Notice</span></li>
+      <li><span class="n">Step 2</span><b>You choose an evaluator</b><span class="w">And complete their intake paperwork</span></li>
+      <li><span class="n">Step 3</span><b>Evaluator sends the agreement</b><span class="w">To the district's special education office</span></li>
+      <li class="hot"><span class="n">Step 4 · Most delays</span><b>District signs the agreement</b><span class="w">New demands often appear here</span></li>
+      <li><span class="n">Step 5</span><b>Testing is scheduled</b><span class="w">Records, observation, sessions</span></li>
+      <li><span class="n">Step 6</span><b>Report and IEP meeting</b><span class="w">The team must consider the results</span></li>
+    </ol>
+
+    <h2 class="sect2">Roadblocks evaluators run into</h2>
+    <p class="help">Collected from real district responses. Check any the district has raised; each adds a paragraph to the letter below. Pick your state at the top to see what your state adds.</p>
+    <div id="rbGroups"></div>
+
+    <h2 class="sect2">Another option: pay now, seek reimbursement later</h2>
+    <div class="card reimb">
+      <div style="min-width:0">
+        <p class="lead">Families don't have to wait out a contracting standoff. You can pay an evaluator privately so the evaluation happens now, then ask the district, or a hearing officer, to reimburse you.</p>
+        <h3>When families consider it</h3>
+        <ul>
+          <li>The need is urgent or time-sensitive, and months of delay would harm your child.</li>
+          <li>Your child is in residential treatment, including out of state, and needs an evaluation where they are.</li>
+          <li>You've made a unilateral placement, moving your child from public school to a private school, and plan to seek reimbursement for it.</li>
+          <li>The district approved the IEE but contracting has stalled for weeks.</li>
+        </ul>
+        <h3>How it works</h3>
+        <ol>
+          <li><b>Keep your IEE request on record.</b> Reimbursement is strongest when you asked the district in writing first and it delayed, refused without filing for due process, or approved and then stalled.</li>
+          <li><b>Tell the district in writing</b> that you're proceeding privately because of the delay and will seek reimbursement. Ask whether it will reimburse directly if the evaluator meets its criteria.</li>
+          <li><b>Choose an evaluator who meets the district's criteria</b>, so the cost can't be refused on that basis.</li>
+          <li><b>Keep every receipt, invoice and message.</b></li>
+          <li><b>Share the report with the IEP team.</b> The team must consider a privately paid evaluation that meets district criteria <span class="cite">34 C.F.R. § 300.502(c)</span>.</li>
+          <li><b>If the district won't pay,</b> reimbursement can be sought through due process or, for procedural violations, a state complaint.</li>
+        </ol>
+      </div>
+      <div style="min-width:0">
+        <h3>Know the risks</h3>
+        <ul>
+          <li>Reimbursement isn't guaranteed. If a hearing officer finds the district's own evaluation was appropriate, you may not be repaid.</li>
+          <li>Costs above the district's cost criteria may be repaid only in part, unless you show unique circumstances.</li>
+          <li><b>Private school placements have notice rules.</b> To seek reimbursement for a unilateral placement, parents generally must reject the district's placement at the most recent IEP meeting, or give written notice at least 10 business days before removing the child. Skipping notice can reduce or deny reimbursement <span class="cite">34 C.F.R. § 300.148</span>.</li>
+          <li>Residential placements raise extra questions, such as whether the placement is needed for educational reasons.</li>
+        </ul>
+        <div class="atty">
+          <b>Talk with a special education attorney first</b>
+          <p>Before you pay privately, and especially before a private or residential placement, get legal advice. Notice requirements, deadlines and your state's rules can decide whether you're repaid. CDA can share contacts for special education attorneys.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sect2">Letter to the district</h2>
+    <p class="help" style="margin-bottom:14px">Coming from you, the parent, this carries weight. Copy your evaluator so everyone has the same record.</p>
+    <div class="letter-grid">
+      <div class="card form">
+        <span class="sample">Sample details. Replace with yours.</span>
+        <label class="f">Your name <input type="text" id="cParent" value="Alex Rivera"></label>
+        <label class="f">Child's name <input type="text" id="cChild" value="Jordan Rivera"></label>
+        <label class="f">School district <input type="text" id="cDistrict" value="Harbor Unified School District"></label>
+        <label class="f">Evaluator <input type="text" id="cEval" value="Cognitive Diagnostic Associates (CDA)"></label>
+        <label class="f">IEE area(s) approved <input type="text" id="cAreas" value="psychoeducational and speech and language"></label>
+        <label class="f">Date of the approval (PWN) <input type="date" id="cPwn"></label>
+        <label class="f">Date the evaluator sent its agreement <input type="date" id="cSent"></label>
+        <label class="f">Respond within
+          <select id="cDays"><option value="5">5 business days</option><option value="10" selected>10 business days</option><option value="15">15 business days</option></select>
+        </label>
+        <div class="wait" id="cWait"></div>
+      </div>
+      <div style="min-width:0">
+        <div class="paper" id="cPaper"></div>
+        <div class="copyrow">
+          <button class="btn primary" id="cCopy" type="button">Copy letter</button>
+          <span class="copied" id="cCopied" hidden>Copied</span>
+        </div>
+        <p class="fine">If the district still doesn't sign or explain, a state complaint can address the delay. Find your state's link at the bottom of the Deadlines tab.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATE RULES -->
+  <section id="v-states" data-view="states" hidden>
+    <div class="card" id="stateCard"></div>
+    <h2 class="sect">All 13 CDA states</h2>
+    <p class="help" style="margin-bottom:12px">Tap a row to switch the whole tool to that state.</p>
+    <div class="tablewrap"><table id="stTable"></table></div>
+    <p class="fine">Compiled from state statutes, regulations, and state education agency guidance in November 2026. Laws change; confirm deadlines with the cited source or a special education attorney before relying on them.</p>
+  </section>
+
+  <!-- DEADLINES -->
+  <section id="v-deadlines" data-view="deadlines" hidden>
+    <p class="help" style="margin-bottom:6px">Enter any date to see the timelines that follow from it, using the rules for <b class="stName">your state</b>.</p>
+    <p class="sample" style="margin-bottom:18px;display:inline-block">Sample dates filled in. Replace with yours.</p>
+    <div class="dl-grid">
+      <div class="card dl">
+        <h2>District evaluation</h2>
+        <p class="sub">Date of the report you disagree with</p>
+        <input type="date" id="dEval">
+        <ul id="oEval"></ul>
+      </div>
+      <div class="card dl">
+        <h2>Your IEE request</h2>
+        <p class="sub">Date you asked in writing</p>
+        <input type="date" id="dReq">
+        <ul id="oReqDl"></ul>
+        <div class="elapsed" id="oReq"></div>
+      </div>
+      <div class="card dl">
+        <h2>Evaluation consent</h2>
+        <p class="sub">Date you signed consent for an initial evaluation</p>
+        <input type="date" id="dCon">
+        <ul id="oCon"></ul>
+      </div>
+      <div class="card dl">
+        <h2>Due process filed</h2>
+        <p class="sub">Date the parent's complaint was filed</p>
+        <input type="date" id="dDP">
+        <ul id="oDP"></ul>
+      </div>
+      <div class="card dl">
+        <h2>Hearing decision received</h2>
+        <p class="sub">Date you received the hearing decision</p>
+        <input type="date" id="dDec">
+        <ul id="oDec"></ul>
+      </div>
+      <div class="card dl">
+        <h2>State complaint filed</h2>
+        <p class="sub">Date the state agency received it</p>
+        <input type="date" id="dSC">
+        <ul id="oSC"></ul>
+      </div>
+    </div>
+    <div class="card tl" style="margin:20px 0 0">
+      <div class="tl-head"><h2>Your upcoming deadlines</h2><div class="copyrow" style="margin:0"><button class="btn" id="copyDates" type="button">Copy dates</button><span class="copied" id="copiedDates" hidden>Copied</span></div></div>
+      <ol id="timeline"></ol>
+    </div>
+    <div class="card filepanel" id="filePanel" style="margin:20px 0 0"></div>
+    <p class="fine">Filing windows usually run from when you knew or should have known about the problem, which is often but not always the report date. School-day estimates skip weekends only; add holidays and breaks from your district calendar. Hearing officers can extend hearing timelines at a party's request.</p>
+  </section>
+
+  <footer>
+    <p>Built by Cognitive Diagnostic Associates (CDA) for families navigating special education evaluations. CDA serves families in 13 states.</p>
+    <p>This tool explains federal and state special education rules for general education purposes. <a href="https://cdacompany.com/legal-disclaimer/" target="_blank" rel="noopener" style="color:var(--accent)">It is not legal advice</a>. Laws change, and your situation may call for an attorney or advocate.</p>
+    <p><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_blank" rel="noopener">Schedule a free 15-minute consultation</a></p>
+  </footer>
+</div>
+
+<script>
+const OPTS = {
+  iep:{name:"IEP meeting", key:"Collaborative", short:"Ask the team to meet, review data, and revise the IEP."},
+  mediation:{name:"Mediation", key:"Voluntary", short:"A neutral mediator helps you and the district reach a binding agreement."},
+  complaint:{name:"State complaint", key:"Investigation", short:"The state agency investigates whether the district broke the rules."},
+  dueprocess:{name:"Due process", key:"Hearing", short:"A hearing officer hears evidence and issues a binding decision."}
+};
+
+const N = {
+ start:{q:"Has the school district evaluated your child?", help:"This includes an initial evaluation, a three-year reevaluation, or a single assessment such as a speech evaluation or a functional behavior assessment (FBA).", a:[["Yes","disagree"],["No","noeval"],["I'm not sure","notsure"]]},
+
+ notsure:{r:1,tone:"act",badge:"First step",title:"Get the records before anything else",
+   body:["You need to know what the district actually tested before you can disagree with it. You have the right to see your child's education records, and the district must respond within 45 days, and before any IEP meeting or hearing."],
+   steps:["Ask in writing for every evaluation report, score summary, and eligibility document from the past three years. <span class='cite'>§ 300.613</span>","Note the date on each report. Your IEE right attaches to a specific evaluation.","Come back here once you have them."], opts:["iep"]},
+
+ noeval:{q:"Have you asked the district, in writing, to evaluate your child?", help:"Districts have a duty to find and evaluate children who may have a disability. A written request creates a record.", a:[["Not yet","askeval"],["Yes, and they refused","refused"],["Yes, it's in progress","inprogress"]]},
+
+ askeval:{r:1,tone:"act",badge:"Start here",title:"Request an evaluation in writing",
+   body:["The right to an IEE begins after the district evaluates. So the first move is asking the district to evaluate.","Once you sign consent, federal law gives the district 60 days to complete the initial evaluation, unless your state sets its own timeline."],
+   steps:["Write to the principal and special education director describing your concerns and asking for a full evaluation in all areas of suspected disability.","Sign and return the consent form promptly. The clock starts at consent. <span class='cite'>§ 300.301(c)</span>","Ask for a copy of the report before the eligibility meeting."], opts:["iep"]},
+
+ refused:{r:1,tone:"stop",badge:"You can challenge this",title:"The district refused to evaluate",
+   body:["A district that refuses must give you Prior Written Notice explaining why, what it considered, and what information it relied on. A refusal without that notice is itself a procedural problem.","You can challenge a refusal to evaluate through a state complaint or due process. A hearing officer can also order an evaluation, including an IEE at public expense."],
+   steps:["Ask for Prior Written Notice of the refusal if you didn't get it. <span class='cite'>§ 300.503</span>","Gather anything showing your concerns: grades, teacher notes, outside reports, discipline records.","Consider a private evaluation as evidence of need. The team must consider it."], opts:["complaint","dueprocess","mediation"]},
+
+ inprogress:{r:1,tone:"go",badge:"Wait and prepare",title:"Let the evaluation finish, then review it",
+   body:["Your IEE right applies once the district's evaluation is complete. Ask for the written report a few days before the meeting so you have time to read it."],
+   steps:["Request the report in advance of the eligibility or IEP meeting.","Write down questions about tests used, areas skipped, and how scores were interpreted.","If you disagree after reviewing it, return here and choose \"Yes\" at the start."], opts:["iep"]},
+
+ disagree:{q:"Do you disagree with any part of the district's evaluation?", help:"Disagreement can be about the results, the conclusions, the tests used, how they were given, or areas the evaluation left out.", a:[["Yes, I disagree","age"],["I'm not sure yet","unsure"],["No, I agree with it","agree"]]},
+
+ agree:{r:1,tone:"go",badge:"No IEE needed",title:"Use the evaluation to build the IEP",
+   body:["If the evaluation is sound, the next step is making sure the IEP reflects what it found. You can still get a private evaluation at your own expense at any time, and the team must consider it if it meets district criteria."],
+   steps:["Check that each area of need in the report has a matching goal or service in the IEP.","Keep the report. The next reevaluation will be compared against it."], opts:["iep"]},
+
+ unsure:{r:1,tone:"act",badge:"Look closer",title:"Get a second set of eyes on the report",
+   body:["Parents often sense something is off without being able to say what. Common gaps include tests that don't match the suspected disability, missing areas such as attention or language, scores averaged in ways that hide weaknesses, and conclusions the data doesn't support.","An independent record review can tell you whether a full IEE is worth requesting."],
+   steps:["Ask for a meeting with the district evaluator to walk through the report.","Ask which tests were given, why, and what the subtest scores show.","Consider a record review by an independent evaluator such as CDA before deciding."], opts:["iep"]},
+
+ age:{q:"When was the evaluation you disagree with completed?", help:"Federal law does not set a deadline to request an IEE, but the two-year window for due process often shapes how hearing officers treat older evaluations.", a:[["Within the last two years","requested"],["More than two years ago","old"]]},
+
+ old:{r:1,tone:"act",badge:"Timing issue",title:"An older evaluation may need a fresh start",
+   body:["Requests tied to evaluations more than two years old are frequently denied as untimely, and results that old may no longer describe your child.","A cleaner route is asking the district for a reevaluation now. Once it's done, you have a full IEE right if you disagree with the new results."],
+   steps:["Request a reevaluation in writing. Districts may reevaluate once a year without agreement, and must at least every three years. <span class='cite'>§ 300.303</span>","Review the new report carefully when it arrives.","If you disagree, request the IEE promptly, ideally within weeks."], opts:["iep"]},
+
+ requested:{q:"Have you asked the district, in writing, for an IEE at public expense?", help:"A phone call or comment at a meeting is easy to dispute later. A dated letter or email is not.", a:[["Not yet","sendletter"],["Yes, I've asked","response"]]},
+
+ sendletter:{r:1,tone:"go",badge:"Your next move",title:"Send a written IEE request",letter:1,
+   body:["Name the evaluation, say you disagree, and ask for an IEE at public expense. That's all the law requires. You do not need to explain why."],
+   steps:["Address it to the special education director, and copy the principal.","Identify the evaluation by type and date.","Ask for the district's IEE criteria and list of evaluators.","Keep proof of the date sent. That date starts the district's obligation to respond."], opts:["iep"]},
+
+ response:{q:"How has the district responded?", help:"Pick the closest match.", a:[
+   ["They agreed to pay for it","agreed"],
+   ["They filed for due process to defend their evaluation","districtdp"],
+   ["No answer yet, or they keep delaying","delay"],
+   ["They said no but haven't filed for due process","denied"],
+   ["They want my reasons before deciding","reason"],
+   ["They agreed, but with limits on cost, location, or evaluator","criteria"],
+   ["They want to re-test my child first","retest"]]},
+
+ agreed:{q:"Where do things stand with the independent evaluation?", help:"", a:[["Not yet, I'm choosing an evaluator","choose"],["I chose an evaluator, but the district hasn't signed its contract","contractdelay"],["Yes, it's done","considered"]]},
+
+ choose:{r:1,tone:"go",badge:"Approved",title:"Choose an evaluator who meets the criteria",
+   body:["You pick the evaluator. The district can require that they meet its criteria, but it can't make you use someone on its list if another qualified examiner meets the same standards."],
+   steps:["Get the district's written criteria and confirm your evaluator meets them.","Ask the evaluator what the IEE will cover and how they'll address the gaps you saw.","Sign releases so the evaluator can get school records and talk with teachers.","Ask that the evaluator be available to attend the IEP meeting."], opts:["iep"]},
+
+ considered:{q:"Has the IEP team considered the IEE results?", help:"", a:[["The meeting hasn't happened yet","schedule"],["Yes, and the IEP changed","success"],["They reviewed it but rejected the recommendations","rejected"],["They refused to consider it","refusedconsider"]]},
+
+ contractdelay:{r:1,tone:"stop",badge:"Contracting delay",title:"Approval doesn't count if the IEE never starts",cta:["#approved","See common roadblocks and draft a letter"],
+   body:["After approving an IEE, the district must still make sure it happens without unnecessary delay. Districts sometimes stall at the contract stage with new requirements: their own contract only, special insurance, district fingerprinting, office distance, or vague \"guidelines.\"","Apart from the criteria it uses for its own evaluations, a district may not add conditions or timelines to an IEE. <span class='cite'>34 C.F.R. § 300.502(e)</span>"],
+   steps:["Ask your evaluator which requirements the district has raised and when.","Write to the district yourself, asking it to sign or name the specific written criterion the evaluator fails to meet.","Set a response date and copy your evaluator.","If the delay continues, file a state complaint about the delay and the added conditions.","If the need is urgent, you can pay privately now and seek reimbursement later. Talk with a special education attorney first."], opts:["complaint","mediation","dueprocess"]},
+ schedule:{r:1,tone:"go",badge:"Next meeting",title:"Request an IEP meeting to review the IEE",
+   body:["The team must consider any IEE that meets district criteria when making decisions about your child's program."],
+   steps:["Send the report to the team a week or more before the meeting.","Request the meeting in writing and ask that the independent evaluator attend.","Bring a list of the IEE's recommendations and ask the team to respond to each one."], opts:["iep"]},
+
+ success:{r:1,tone:"go",badge:"Done",title:"The IEE did its job",
+   body:["Keep the IEE with your records. The next district reevaluation should be compared with it, and if you disagree with that one, you can request another IEE."],
+   steps:["Track progress reports against the new goals.","Ask for a meeting if services aren't delivered as written."], opts:["iep"]},
+
+ rejected:{r:1,tone:"act",badge:"Disagreement continues",title:"The team considered it but won't follow it",
+   body:["\"Consider\" does not mean \"adopt.\" But the district must explain in writing what it refused and why. If the IEP still doesn't meet your child's needs, that's a dispute about FAPE, which due process is built to resolve."],
+   steps:["Ask for Prior Written Notice of each recommendation the team rejected. <span class='cite'>§ 300.503</span>","Request mediation if you think an agreement is possible.","Consider due process if the dispute is about services, placement, or eligibility."], opts:["mediation","dueprocess","iep"]},
+
+ refusedconsider:{r:1,tone:"stop",badge:"Procedural violation",title:"The team refused to consider the IEE",
+   body:["If the IEE meets district criteria, the team is required to consider it. Refusing is a clear procedural violation, and a state complaint is often the quickest way to address one."],
+   steps:["Put the refusal in writing: who said what, at which meeting. <span class='cite'>§ 300.502(c)</span>","File a state complaint describing the refusal and asking for a new IEP meeting as a remedy.","If the refusal led to an inadequate IEP, due process may also be appropriate."], opts:["complaint","dueprocess","mediation"]},
+
+ districtdp:{r:1,tone:"act",badge:"Hearing ahead",title:"The district is defending its evaluation",
+   body:["This is the district exercising its second option. A hearing officer will decide whether the district's evaluation was appropriate.","If you win, the district pays for the IEE. If the district wins, you can still get an IEE at your own expense, and the team must still consider it."],
+   steps:["Read the complaint carefully and note the response deadlines.","Talk with an attorney or advocate. If you prevail, you may recover attorneys' fees.","An independent expert who reviews the district's evaluation can testify about its gaps.","Mediation is still available and can end the hearing with an agreement."], opts:["dueprocess","mediation"]},
+
+ delay:{r:1,tone:"stop",badge:"Delay",title:"The district hasn't acted on your request",
+   body:["Federal law requires the district to fund the IEE or file for due process without unnecessary delay. It sets no exact number of days, and some states do, but long unexplained delays have led hearing officers and courts to order districts to pay."],
+   steps:["Send a short follow-up letter restating your request and its original date.","Set a reasonable response date, such as 10 school days.","If there's still no action, a state complaint can address the delay as a procedural violation.","Due process can ask for the IEE at public expense, or reimbursement if you pay for it."], opts:["complaint","dueprocess","mediation"]},
+
+ denied:{r:1,tone:"stop",badge:"Not allowed",title:"A refusal without a hearing request isn't an option",
+   body:["The district can't simply decline. Its only alternatives to paying are filing for due process to defend its evaluation. A refusal that stops there leaves your request unanswered under the law."],
+   steps:["Ask for the refusal and its reasons in writing (Prior Written Notice).","Reply that the district must either fund the IEE or file for due process.","File a state complaint or your own due process complaint if it does neither."], opts:["complaint","dueprocess","mediation"]},
+
+ reason:{r:1,tone:"act",badge:"Know your rights",title:"You don't have to give a reason",
+   body:["The district may ask why you disagree, but you don't have to explain, and it can't delay its decision waiting for your answer. <span class='cite'>§ 300.502(b)(4)</span>","Some parents choose to share their concerns because it can help the evaluator focus. That's a strategic choice, not a requirement."],
+   steps:["Reply in writing that you are declining to explain, or share a brief summary if you prefer.","Restate that the district must fund the IEE or file for due process.","If the district keeps waiting, treat it as delay."], opts:["complaint","dueprocess","mediation"]},
+
+ criteria:{r:1,tone:"act",badge:"Check the limits",title:"Limits must match the district's own criteria",
+   body:["The district can apply the same criteria it uses for its own evaluations: qualifications, location, and reasonable cost. It can't add conditions beyond those, and it must let you show when your child's needs justify going outside them, for example when no qualified evaluator exists within a cost cap or distance limit."],
+   steps:["Ask for the criteria in writing, along with how the cost cap was set.","If no qualified evaluator fits, document your search and request an exception. <span class='cite'>§ 300.502(e)</span>","If the district won't budge, a state complaint or due process can resolve it."], opts:["iep","complaint","dueprocess","mediation"]},
+
+ retest:{r:1,tone:"act",badge:"Watch for delay",title:"Re-testing isn't a substitute for an answer",
+   body:["Federal guidance indicates a district generally can't require you to agree to new district testing before it responds to an IEE request. It still must fund the IEE or file for due process without unnecessary delay.","You can agree to more testing if you want, but it doesn't erase your IEE request."],
+   steps:["Respond in writing that you're keeping your IEE request in place.","Decide separately whether you consent to the additional testing.","If the district treats re-testing as a reason to stall, see the delay path."], opts:["complaint","dueprocess","mediation"]}
+};
+
+/* ---------- States ---------- */
+const STATES = {
+ US:{name:"Federal rules only", sol:24, solText:"Two years from when you knew or should have known about the problem", solCite:"20 U.S.C. § 1415(f)(3)(C)",
+   evalN:60, evalU:"cal", evalText:"60 calendar days from consent, unless the state sets its own timeline", evalCite:"34 C.F.R. § 300.301(c)",
+   ieeText:"No set number of days. The district must fund the IEE or file for due process without unnecessary delay.", ieeCite:"34 C.F.R. § 300.502(b)(2)", ieeShort:"Without unnecessary delay", ieeN:null, ieeU:null,
+   recText:"Within 45 days, and before any IEP meeting or hearing", recCite:"34 C.F.R. § 300.613",
+   hearText:"Impartial hearing officer. Appeal to state or federal court within 90 days unless the state sets another limit.", hearCite:"20 U.S.C. § 1415(i)(2)(B)", hearShort:"Hearing officer",
+   court:90, sro:null, notes:[], letter:"", recLetter:"", crit:""},
+ AK:{name:"Alaska", sol:12, solText:"12 months from the district's written notice of the decision you disagree with", solCite:"AS 14.30.193(a)",
+   evalN:90, evalText:"90 calendar days from consent to finish the evaluation, write the IEP, and start services", evalCite:"4 AAC 52.115(a)",
+   hearText:"Hearing officer. Appeal to Alaska superior court under the Alaska Rules of Appellate Procedure.", hearCite:"4 AAC 52.550", court:null,
+   notes:["Alaska gives families half the federal time to file for due process. Count from the date on the district's written notice, not from a phone call or a meeting."]},
+ AZ:{name:"Arizona", evalText:"60 calendar days from consent, including school breaks. Can be extended 30 days if the parent and school agree in writing.", evalCite:"A.A.C. R7-2-401(E)",
+   notes:["After a parent's written request for an evaluation, the school has 15 school days to start it or send written notice refusing it."]},
+ CA:{name:"California", solCite:"Cal. Educ. Code § 56505(l)",
+   evalU:"calx", evalText:"Assessment plan within 15 days of referral. IEP meeting within 60 days of consent, not counting school vacations longer than 5 school days.", evalCite:"Cal. Educ. Code § 56043",
+   recText:"Copies within 5 business days, and before any IEP meeting", recCite:"Cal. Educ. Code § 56504",
+   hearText:"Administrative law judge at the Office of Administrative Hearings (OAH). Appeal to court within 90 days of receiving the decision.", hearCite:"Cal. Educ. Code § 56505(k)", hearShort:"OAH judge",
+   recLetter:"Under California Education Code section 56504, please provide these copies within five business days."},
+ CO:{name:"Colorado", hearText:"Administrative law judge at the Office of Administrative Courts. Appeal to state or federal court within 90 days.", hearCite:"CDE due process guidance", hearShort:"OAC judge",
+   notes:["If the district files for due process in response to your IEE request, you must respond in writing within 10 days. No resolution meeting is required in that case."]},
+ IL:{name:"Illinois", evalN:60, evalU:"school", evalText:"60 school days from consent to decide eligibility and hold the IEP meeting. Services start within 10 school days after that.", evalCite:"105 ILCS 5/14-8.02",
+   ieeText:"If the district contests your request, it must file for due process within 7 school days of your written request. A publicly funded IEE must be finished within 60 school days of your request.", ieeCite:"105 ILCS 5/14-8.02 (P.A. 104-368)", ieeShort:"7 school days to file", ieeN:7, ieeU:"school",
+   recText:"Within 10 business days, extendable by 5 business days", recCite:"105 ILCS 10/5(c)",
+   hearText:"Impartial hearing officer appointed through the Illinois State Board of Education.", hearCite:"105 ILCS 5/14-8.02a", court:null,
+   crit:"Illinois limits fees for licensed clinical psychologists on the State Board's IEE list to what a school psychologist would be paid for the same services.",
+   notes:["Illinois limits fees for licensed clinical psychologists on the State Board's IEE list to what a school psychologist would be paid for the same services.",
+          "Two 2025 amendments to this section conflict. P.A. 104-368 sets 7 school days to file and 60 school days to finish; P.A. 104-270 shows 5 days and 30 days. Current guidance applies the 7- and 60-day version, effective January 1, 2026. Confirm with counsel."],
+   letter:"Under 105 ILCS 5/14-8.02, if the district contests this request, it must request a due process hearing within 7 school days of receiving it.",
+   recLetter:"Under the Illinois School Student Records Act, please provide these records within 10 business days."},
+ MA:{name:"Massachusetts", evalN:30, evalU:"school", evalText:"30 school days after consent to complete the evaluation", evalCite:"603 CMR 28.04(2)",
+   ieeText:"Within 5 school days, the district must agree to pay or ask the Bureau of Special Education Appeals (BSEA) for a hearing to defend its evaluation.", ieeCite:"603 CMR 28.04(5)(d)", ieeShort:"5 school days", ieeN:5, ieeU:"school",
+   hearText:"Hearing officer at the Bureau of Special Education Appeals (BSEA). Appeal to state superior court or federal district court within 90 calendar days.", hearCite:"BSEA Hearing Rules I.C, XIV.A", hearShort:"BSEA hearing officer",
+   crit:"Massachusetts also has an income-based route to a publicly funded IEE. Families who qualify for free or reduced-price lunch get 100% funding. Otherwise the district pays 100% at or below 400% of the federal poverty level, 75% from 400% to 500%, and 50% from 500% to 600%. Sharing income information is voluntary.",
+   notes:["Massachusetts also has an income-based route to a publicly funded IEE. Families who qualify for free or reduced-price lunch get 100% funding. Otherwise the district pays 100% at or below 400% of the federal poverty level, 75% from 400% to 500%, and 50% from 500% to 600%. Sharing income information is voluntary. <span class='cite'>603 CMR 28.04(5)</span>"],
+   letter:"Under 603 CMR 28.04(5)(d), the district must respond within five school days by agreeing to fund the IEE or requesting a hearing at the Bureau of Special Education Appeals."},
+ NV:{name:"Nevada", solCite:"NAC 388.306(15)", evalN:45, evalU:"school", evalText:"45 school days after consent", evalCite:"NAC 388.337(1)(a)",
+   hearText:"Two levels. A hearing officer decides first. Either side can appeal to a State Review Officer within 30 days of receiving the decision, and the SRO decides within 30 days. Court action within 90 days after the SRO decision.", hearCite:"NAC 388.315", hearShort:"Hearing officer, then State Review Officer",
+   court:null, sro:{days:30, label:"Appeal to State Review Officer by", court:90}},
+ NY:{name:"New York", solCite:"N.Y. Educ. Law § 4404(1)(a)", evalText:"60 calendar days from consent", evalCite:"8 NYCRR 200.4(b)(7)",
+   hearText:"Two levels. An impartial hearing officer (IHO) decides first. To appeal, serve a request for review within 40 days of the IHO decision; the Office of State Review then decides. Court review follows the SRO decision.", hearCite:"8 NYCRR 279.4(a)", hearShort:"IHO, then State Review Officer",
+   court:null, sro:{days:40, label:"Serve request for review on SRO by", court:null}},
+ OR:{name:"Oregon", solText:"Two years from the date of the act or omission, counted from when it happened rather than when you learned of it", solCite:"OAR 581-015-2345(3)",
+   evalN:60, evalU:"school", evalText:"60 school days from consent to the eligibility meeting", evalCite:"OAR 581-015-2110(5)",
+   ieeText:"No set number of days. The district may not unreasonably delay paying for the IEE or filing for due process.", ieeCite:"OAR 581-015-2305",
+   hearText:"Administrative law judge.", hearShort:"Administrative law judge", court:null,
+   notes:["Oregon's two years runs from when the act happened. Families who learn of a problem late have less time than in states that count from discovery."]},
+ TX:{name:"Texas", solCite:"19 TAC § 89.1151(c)", evalN:45, evalU:"school", evalText:"Written report within 45 school days of consent. Extended day for day if the child misses 3 or more school days; summer doesn't count.", evalCite:"Tex. Educ. Code § 29.004",
+   hearText:"Impartial hearing officer.", court:null,
+   notes:["Texas moved from a one-year to a two-year due process deadline on September 1, 2022. Older guides may still say one year."]},
+ UT:{name:"Utah", evalN:45, evalU:"school", evalText:"45 school days from consent", evalCite:"USBE Special Education Rules II.D.2",
+   hearText:"Independent due process hearing officer.", court:null,
+   notes:["When the Division of Child and Family Services requests an evaluation, the district must complete it within 30 days."]},
+ WA:{name:"Washington", evalN:35, evalU:"school", evalText:"35 school days from consent, with the report to parents by day 35. Eligibility meeting at least 5 school days after the report and within 40 school days of consent.", evalCite:"WAC 392-172A-03005; ESHB 2557 (eff. June 11, 2026)",
+   ieeText:"If the district won't pay, it must file for due process within 15 days to defend its evaluation. Paying must happen without unnecessary delay.", ieeCite:"WAC 392-172A-05005(2)(c)", ieeShort:"15 days to file", ieeN:15, ieeU:"cal",
+   hearText:"Administrative law judge.", hearShort:"Administrative law judge", court:null,
+   notes:["The rule doesn't say whether the 15 days are calendar or school days. Counting calendar days is the safer reading."],
+   letter:"Under WAC 392-172A-05005, if the district does not agree to fund the IEE, it must initiate a due process hearing within fifteen days."},
+ WY:{name:"Wyoming", evalText:"60 calendar days from consent to finish evaluations and hold the eligibility meeting", evalCite:"WDE Parent's Guide to Special Education",
+   hearText:"Hearing officer. Appeal to state or federal court within 90 days of the decision.", hearCite:"WDE dispute resolution chart"}
+};
+let curState = "US";
+try{ const v = localStorage.getItem("ieeNavState"); if(v && STATES[v]) curState = v; }catch(e){}
+const S = ()=>Object.assign({}, STATES.US, STATES[curState]);
+const solShort = s=>s.sol===12 ? "12 months" : (s.sol/12)+" years";
+const evalShort = s=>`${s.evalN} ${s.evalU==="school"?"school":"calendar"} days`;
+const stSel = document.getElementById("stateSel");
+stSel.innerHTML = `<option value="US">Federal rules only</option>` + Object.keys(STATES).filter(k=>k!=="US").map(k=>`<option value="${k}">${STATES[k].name}</option>`).join("");
+stSel.value = curState;
+function setState(code){
+  curState = code; stSel.value = code;
+  try{ localStorage.setItem("ieeNavState", code); }catch(e){}
+  renderAll();
+}
+stSel.addEventListener("change", ()=>setState(stSel.value));
+function stateLine(){
+  const s=S();
+  document.getElementById("stateLine").textContent = curState==="US"
+    ? "Showing federal IDEA rules. Pick a state to apply its deadlines and rules throughout."
+    : `Showing ${s.name} rules: due process within ${solShort(s)}, initial evaluation in ${evalShort(s)}${s.ieeN?`, IEE answer within ${s.ieeShort.replace(" to file","")}`:""}.`;
+  document.querySelectorAll(".stName").forEach(el=>el.textContent = curState==="US" ? "federal law" : s.name);
+}
+function stNote(id){
+  if(curState==="US") return "";
+  const s=S(); let t="";
+  const kind = {delay:"iee",denied:"iee",reason:"iee",retest:"iee",sendletter:"iee",askeval:"eval",inprogress:"eval",refused:"hear",notsure:"rec",age:"sol",old:"sol",requested:"sol",districtdp:"hear",rejected:"hear",refusedconsider:"hear",criteria:"crit",choose:"crit",contractdelay:"iee"}[id];
+  if(kind==="iee") t = `${s.ieeText} <span class="cite">${s.ieeCite}</span>`;
+  if(kind==="eval") t = `${s.evalText}. <span class="cite">${s.evalCite}</span>`;
+  if(kind==="rec") t = `Records must be provided ${s.recText.charAt(0).toLowerCase()+s.recText.slice(1)}. <span class="cite">${s.recCite}</span>`;
+  if(kind==="sol") t = `Due process must be filed within ${s.solText.charAt(0).toLowerCase()+s.solText.slice(1)}. <span class="cite">${s.solCite}</span>`;
+  if(kind==="hear") t = `${s.hearText} <span class="cite">${s.hearCite}</span>`;
+  if(kind==="crit") t = s.crit;
+  if(!t && !kind && N[id] && N[id].r) t = `${s.name} follows the federal rule for this step.`;
+  return t ? `<div class="stnote"><b>In ${s.name}</b>${t}</div>` : "";
+}
+function renderStates(){
+  const s=S();
+  const rows = [
+    ["Due process window", s.solText, s.solCite],
+    ["Initial evaluation", s.evalText, s.evalCite],
+    ["IEE response", s.ieeText, s.ieeCite],
+    ["Records access", s.recText, s.recCite],
+    ["Hearings and appeals", s.hearText, s.hearCite],
+    ["State complaint", "Violations within the past 1 year; written decision within 60 days", "34 C.F.R. §§ 300.152–153"]
+  ];
+  document.getElementById("stateCard").innerHTML = `<div class="st-head"><h2>${curState==="US"?"Federal IDEA rules":s.name}</h2><span class="cite">${curState==="US"?"Applies in every state as the minimum":"State rules layered on federal IDEA"}</span></div>
+    <dl class="st-rows">${rows.map(r=>`<div class="st-row"><dt>${r[0]}</dt><dd>${r[1]} <span class="cite">${r[2]}</span></dd></div>`).join("")}</dl>
+    ${s.notes.length?`<div class="st-notes">${s.notes.map(n=>`<div class="note"><b>Note.</b> ${n}</div>`).join("")}</div>`:""}`;
+  const codes = Object.keys(STATES).filter(k=>k!=="US").sort((a,b)=>STATES[a].name.localeCompare(STATES[b].name));
+  document.getElementById("stTable").innerHTML = `<thead><tr><th>State</th><th>Due process window</th><th>Initial evaluation</th><th>IEE response</th><th>Hearing</th></tr></thead><tbody>${
+    codes.map(k=>{const x=Object.assign({},STATES.US,STATES[k]); const c=k===curState?"sel":""; return `<tr data-code="${k}"><th scope="row" class="${c}">${x.name}</th><td class="${c}">${solShort(x)}${k==="OR"?" (from the act)":""}</td><td class="${c}">${evalShort(x)}</td><td class="${c}">${x.ieeShort}</td><td class="${c}">${x.hearShort}</td></tr>`;}).join("")}</tbody>`;
+}
+document.getElementById("stTable").addEventListener("click", e=>{ const tr=e.target.closest("tr[data-code]"); if(tr) setState(tr.dataset.code); });
+function applyStateRows(){
+  const s=S();
+  ROWS[1][1].dueprocess = `${s.solText} <span class='cite'>${s.solCite}</span>`;
+  ROWS[2][1].dueprocess = s.hearShort;
+  ROWS[3][1].dueprocess = "30-day resolution period, then decision within 45 days" + (s.sro ? `. Second-level appeal to a State Review Officer available.` : "");
+}
+
+/* ---------- Navigator ---------- */
+let hist = [{id:"start"}];
+const stage = document.getElementById("stage"), trail = document.getElementById("trail");
+function renderNav(){
+  const cur = hist[hist.length-1], n = N[cur.id];
+  if(n.r){
+    const t = "t-"+n.tone;
+    stage.innerHTML = `<div class="card result ${t}">
+      <span class="badge">${n.badge}</span>
+      <h2>${n.title}</h2>
+      <div class="body">${n.body.map(p=>`<p>${p}</p>`).join("")}</div>
+      ${stNote(cur.id)}
+      <h3>What to do</h3>
+      <ol class="steps">${n.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+      <h3>Options that fit</h3>
+      <div class="chips">${n.opts.map(o=>`<button class="chip" data-opt="${o}" type="button">${OPTS[o].name}</button>`).join("")}
+        <button class="chip" data-combo="${n.opts.join(",")}" type="button">Compare these together</button></div>
+      <div class="ctrl">
+        ${n.letter?`<a class="btn primary" href="#letter" style="text-decoration:none">Draft my request letter</a>`:""}${n.cta?`<a class="btn primary" href="${n.cta[0]}" style="text-decoration:none">${n.cta[1]}</a>`:""}
+        <button class="btn" id="back" type="button">Back</button>
+        <button class="btn" id="restart" type="button">Start over</button>
+      </div></div>`;
+  } else {
+    const stepNo = hist.filter(h=>!N[h.id].r).length;
+    stage.innerHTML = `<div class="card">
+      <div class="step-tag">Question ${stepNo}</div>
+      <h2 class="q">${n.q}</h2>
+      ${n.help?`<p class="help">${n.help}</p>`:"<div style='height:10px'></div>"}
+      ${cur.id==="age"?stNote("age").replace("stnote","stnote\" style=\"margin:-6px 0 18px"):""}
+      <div class="answers">${n.a.map((x,i)=>`<button class="ans" data-i="${i}" type="button">${x[0]}</button>`).join("")}</div>
+      ${hist.length>1?`<div class="ctrl"><button class="btn" id="back" type="button">Back</button><button class="btn" id="restart" type="button">Start over</button></div>`:""}
+    </div>`;
+  }
+  const done = hist.slice(0,-1);
+  trail.innerHTML = done.length ? `<ol>${done.map((h,i)=>`<li><span class="n">${String(i+1).padStart(2,"0")}</span><div><div class="tq">${N[h.id].q}</div><div class="ta">${h.ans}</div></div></li>`).join("")}</ol>`
+    : `<p class="empty">Your answers will appear here as you go, so you can see how you reached your result.</p>`;
+}
+stage.addEventListener("click", e=>{
+  const a = e.target.closest(".ans");
+  if(a){ const cur = hist[hist.length-1]; const pick = N[cur.id].a[+a.dataset.i]; cur.ans = pick[0]; hist.push({id:pick[1]}); renderNav(); stage.scrollIntoView({block:"nearest"}); return; }
+  if(e.target.id==="back"){ hist.pop(); delete hist[hist.length-1].ans; renderNav(); return; }
+  if(e.target.id==="restart"){ hist=[{id:"start"}]; renderNav(); return; }
+  const c = e.target.closest("[data-opt],[data-combo]");
+  if(c){ selected = new Set(c.dataset.opt ? [c.dataset.opt] : c.dataset.combo.split(",")); renderOpts(); go("options"); }
+});
+
+/* ---------- Options ---------- */
+let selected = new Set(["complaint","dueprocess"]);
+const ROWS = [
+  ["Who can start it", {iep:"Parent or district, any time", mediation:"Either side; both must agree to take part", complaint:"Anyone, including an organization, in writing and signed", dueprocess:"Parent or district"}],
+  ["Deadline to file", {iep:"None", mediation:"None; available any time", complaint:"Violation within the past 1 year", dueprocess:"Within 2 years of when you knew or should have known (state may differ)"}],
+  ["Who decides", {iep:"The IEP team", mediation:"You and the district, together", complaint:"State education agency investigator", dueprocess:"Impartial hearing officer"}],
+  ["How long", {iep:"Meeting can be scheduled within weeks", mediation:"Varies; often a single session", complaint:"Written decision within 60 days", dueprocess:"30-day resolution period, then decision within 45 days"}],
+  ["Best for", {iep:"Getting new data considered; small changes", mediation:"Disputes where a deal is possible", complaint:"Procedural violations: missed timelines, ignored requests, IEP not followed", dueprocess:"Disputes over evaluations, eligibility, services, placement"}],
+  ["Can result in", {iep:"A revised IEP", mediation:"Binding written agreement, enforceable in court", complaint:"Corrective action, compensatory services, reimbursement", dueprocess:"IEE at public expense, services, placement, compensatory education, reimbursement"}],
+  ["Cost to family", {iep:"Free", mediation:"Free; state pays the mediator", complaint:"Free; no attorney needed", dueprocess:"Free to file; attorneys' fees possible for a prevailing parent"}],
+  ["Citation", {iep:"<span class='cite'>§ 300.324</span>", mediation:"<span class='cite'>§ 300.506</span>", complaint:"<span class='cite'>§§ 300.151–153</span>", dueprocess:"<span class='cite'>§§ 300.507–516</span>"}]
+];
+const PAIRS = [
+  [["complaint","dueprocess"],"warn","State complaint + due process","If both raise the same issue, the state sets that part of the complaint aside until the hearing ends, and the hearing decision controls it. Issues that are only in the complaint go forward on the 60-day timeline. <span class='cite'>§ 300.152(c)</span>"],
+  [["mediation","dueprocess"],"","Mediation + due process","Mediation can replace the resolution meeting if both sides agree, and a signed agreement can end the hearing. Hearing timelines keep running unless adjusted."],
+  [["mediation","complaint"],"","Mediation + state complaint","The 60-day complaint timeline can be extended if both sides agree to try mediation first. <span class='cite'>§ 300.152(b)</span>"],
+  [["iep","dueprocess"],"","IEP meeting + due process","When a parent files, the district must hold a resolution meeting with relevant IEP team members within 15 days. Your child stays in the current placement during the hearing (stay-put). <span class='cite'>§§ 300.510, 300.518</span>"],
+  [["iep","complaint"],"","IEP meeting + state complaint","You can keep meeting with the team while the complaint is investigated. A new agreement at the table doesn't automatically withdraw the complaint."],
+  [["iep","mediation"],"","IEP meeting + mediation","Agreements reached in mediation are often written into the IEP at a follow-up meeting."]
+];
+const optGrid = document.getElementById("optGrid");
+function renderOpts(){ applyStateRows();
+  optGrid.innerHTML = Object.entries(OPTS).map(([k,o])=>`<button class="opt" type="button" data-k="${k}" aria-pressed="${selected.has(k)}"><span class="k">${o.key}</span><b>${o.name}</b><span class="s">${o.short}</span><span class="tick">${selected.has(k)?"✓ In your combination":"Add"}</span></button>`).join("");
+  const s=[...selected], notes=document.getElementById("comboNotes");
+  document.getElementById("comboTitle").textContent = s.length ? "Your combination: " + s.map(k=>OPTS[k].name).join(" + ") : "Your combination";
+  let html = "";
+  if(!s.length) html = `<div class="note">Select one or more options above to see how they work together.</div>`;
+  else if(s.length===1) html = `<div class="note"><b>${OPTS[s[0]].name} on its own.</b> ${OPTS[s[0]].short} Add another option to see how they interact.</div>`;
+  PAIRS.forEach(([pr,cls,t,txt])=>{ if(pr.every(p=>selected.has(p))) html += `<div class="note ${cls}"><b>${t}.</b> ${txt}</div>`; });
+  if(s.length===4) html += `<div class="note"><b>All four.</b> Families often start with an IEP meeting, file a state complaint for clear procedural violations, and file due process for the bigger disagreement, keeping mediation open throughout.</div>`;
+  if(curState!=="US"){ const st=S(); html = `<div class="note"><b>In ${st.name}.</b> Due process: ${st.solText.charAt(0).toLowerCase()+st.solText.slice(1)}; ${st.hearText.charAt(0).toLowerCase()+st.hearText.slice(1)} State complaints follow the federal 1-year window and 60-day decision.${st.ieeN?` IEE requests: ${st.ieeShort.replace(" to file"," for the district to file")}.`:""}</div>` + html; }
+  notes.innerHTML = html;
+  const keys=Object.keys(OPTS);
+  document.getElementById("cmp").innerHTML = `<thead><tr><th></th>${keys.map(k=>`<th class="${selected.has(k)?"sel":""}">${OPTS[k].name}</th>`).join("")}</tr></thead><tbody>${ROWS.map(([lab,v])=>`<tr><th scope="row">${lab}</th>${keys.map(k=>`<td class="${selected.has(k)?"sel":""}">${v[k]}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+optGrid.addEventListener("click",e=>{const b=e.target.closest(".opt"); if(!b) return; const k=b.dataset.k; selected.has(k)?selected.delete(k):selected.add(k); renderOpts();});
+
+/* ---------- Dates ---------- */
+const today = new Date(); today.setHours(0,0,0,0);
+const iso = d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const parse = s=>{ if(!s) return null; const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const add = (d,n)=>{ const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const addY = (d,n)=>{ const x=new Date(d); x.setFullYear(x.getFullYear()+n); return x; };
+const fmt = d=>d.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+const longFmt = d=>d.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+
+/* ---------- Letter ---------- */
+const L = id=>document.getElementById(id);
+L("lEvalDate").value = iso(add(today,-75));
+function renderLetter(){
+  const v = id=>L(id).value.trim();
+  const ed = parse(v("lEvalDate"));
+  const child = v("lChild")||"[child's name]", first = child.split(" ")[0];
+  const occEl = document.querySelector('input[name="lOcc"]:checked'), occ = occEl ? occEl.value : "evaluation";
+  const evs = [...document.querySelectorAll(".ev:checked")].map(x=>x.value); if(v("lOther")) evs.push(v("lOther"));
+  const list = evs.length ? evs.map(e=>`  • ${e}`).join("\n") : "  • [assessment areas]";
+  let t = `${longFmt(today)}\n\nDirector of Special Education\n${v("lDistrict")||"[school district]"}\n\nRe: Request for an Independent Educational Evaluation for ${child}\n\nDear Director,\n\nI am the parent of ${child}, a student at ${v("lSchool")||"[school]"}. I disagree with the district's ${occ}${ed?` dated ${longFmt(ed)}`:""}, including the following assessment${evs.length===1?"":"s"}:\n\n${list}\n\nUnder 34 C.F.R. § 300.502, I am requesting an independent educational evaluation (IEE) at public expense in ${evs.length===1?"this area":"each of these areas"}.`;
+  if(L("lCriteria").checked) t += `\n\nPlease send me the district's criteria for independent educational evaluations and information about where an IEE may be obtained.`;
+  t += `\n\nI understand that the district must, without unnecessary delay, either ensure that the IEE is provided at public expense or file a due process complaint to show that its evaluation is appropriate.${S().letter?" "+S().letter:""}`;
+  if(L("lRecords").checked) t += `\n\nPlease also provide a complete copy of ${first}'s education records, including all evaluation reports and score summaries from the district's evaluation.${S().recLetter?" "+S().recLetter:""}`;
+  if(L("lWritten").checked) t += `\n\nPlease respond to this request in writing.`;
+  t += `\n\nSincerely,\n\n${v("lParent")||"[your name]"}`;
+  L("paper").textContent = t;
+}
+document.querySelectorAll("#v-letter input, #v-letter select").forEach(el=>el.addEventListener("input",renderLetter));
+L("copyBtn").addEventListener("click",()=>{
+  const txt=L("paper").textContent, ok=()=>{L("copied").hidden=false; setTimeout(()=>L("copied").hidden=true,2000);};
+  try{ navigator.clipboard.writeText(txt).then(ok).catch(sel); }catch(e){ sel(); }
+  function sel(){ const r=document.createRange(); r.selectNodeContents(L("paper")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); L("copied").textContent="Selected. Press Ctrl+C or ⌘C"; L("copied").hidden=false; }
+});
+
+/* ---------- After approval ---------- */
+const NOFED = "No federal or state law found that adds to the general rule. Ask for the district's written criteria and whether its own evaluators meet the same requirement.";
+const RB = [
+ {g:"Contract and paperwork", id:"contract", wide:1, t:"The district will only use its own contract", said:"We can only proceed on the district's standard vendor agreement.",
+  law:"An IEE is defined by its independence. It's done by a qualified examiner who doesn't work for the district, the parents choose that examiner, and the results can be used as evidence at a hearing <span class='cite'>34 C.F.R. § 300.502(a)(3), (c)</span>. Many district contracts are blanket vendor agreements written for ordinary purchases, and some contain terms that hand the district control over the evaluator.<br><br>Using a contract to pay an evaluator isn't a violation by itself; Colorado upheld one district's agreement while striking extra conditions it added (SC2025-609). What crosses the line are terms that let the district shape the findings, limit who the evaluator talks to, or hold payment over the report. Those are conditions beyond the criteria the regulation allows <span class='cite'>§ 300.502(e)</span>.",
+  ask:"Ask the district to sign the evaluator's IEE agreement, or to name the specific terms in it the district objects to. Don't let the IEE sit while contract forms go back and forth.",
+  flags:[
+   ["edit","The district can require changes to the report","terms allowing the district to require changes to the evaluator's report"],
+   ["withhold","Payment held until the district accepts the report","terms withholding payment until the district accepts or approves the report"],
+   ["nocontact","The evaluator can't talk with the family until the IEP meeting","terms barring the evaluator from communicating with our family before the IEP meeting"],
+   ["indemnity","Indemnification that protects only the district","one-sided indemnification protecting only the district"],
+   ["draft","The district reviews a draft or gets the report first","terms giving the district a draft review or the report before our family"],
+   ["testify","Limits on testifying or sharing results without district permission","limits on the evaluator sharing results or testifying without the district's permission"],
+   ["methods","The district picks the tests or sets the scope","terms letting the district choose the tests or set the evaluation's scope"],
+   ["ownership","The district owns the report or the evaluator's work","terms giving the district ownership of the evaluator's report and work product"],
+   ["cancel","The district can cancel without paying for work done","terms letting the district cancel without paying for work already done"],
+   ["latepay","Payment only after the IEP meeting, or 60 to 90 days later","payment terms delayed until after the IEP meeting or for 60 to 90 days"]
+  ],
+  p:(e,f)=> f.length
+    ? `The district has said it will only use its own vendor contract. That contract includes terms that would compromise the independence of the evaluation, including:\n${f.map(x=>`  • ${x}`).join("\n")}\nThese terms go beyond the criteria allowed by 34 C.F.R. § 300.502(e). An IEE must be independent of the district. Please sign ${e}'s IEE agreement, or identify the specific terms in it the district objects to.`
+    : `The district has said it will only use its own contract. Please identify any specific term in ${e}'s agreement the district objects to, rather than holding the IEE while contract forms are exchanged.`},
+ {g:"Contract and paperwork", id:"legal", t:"Sent to legal or risk management, again", said:"Your agreement is with our risk management team and legal counsel for review.",
+  law:"Review is normal. Repeated rounds of review and revision over weeks or months, with no specific objection, can become the unnecessary delay the IEE rule prohibits.",
+  ask:"Ask which specific terms remain unresolved and a date by which review will be finished.",
+  p:e=>`The agreement has been sent for legal or risk management review more than once. Please tell me which specific terms remain unresolved and when the review will be complete.`},
+ {g:"Contract and paperwork", id:"board", t:"Waiting for a school board meeting", said:"The contract will go to the Board for approval next month.",
+  law:"Some districts route every contract through board approval, which can add a month or more. Federal law doesn't excuse delay for internal approval steps the district controls.",
+  ask:"Ask for the meeting date, confirmation the agreement is on that agenda, and whether the district can approve IEE contracts administratively, as many do.",
+  p:e=>`The district has said the agreement must wait for a school board meeting. Please tell me the meeting date and confirm that the agreement is on its agenda.`},
+ {g:"Contract and paperwork", id:"edgar", t:"\"Federal rules (EDGAR) require our contract\"", said:"We can't remove items that align to EDGAR and federal purchasing policy.",
+  law:"<a href='https://www.ed.gov/grants-and-programs/manage-your-grant/education-department-general-administrative-regulations-edgar-and-other-applicable-grant-regulations' target='_blank' rel='noopener'>EDGAR</a> is the U.S. Department of Education's rulebook for spending federal grant money, including special education funds. Think of it as a shopping rulebook: get a fair price, keep good records, and put a few standard clauses in contracts paid with that money.<br><br><b>Where the money comes from:</b> Federal special education money flows through IDEA, which has parts. <b>Part B</b> funds services for children ages 3 through 21, and it's the federal money districts use for IEEs. <b>Part C</b> funds early intervention for infants and toddlers under 3, so it doesn't pay for school district IEEs. Districts can also pay from state or local funds.<br><br><b>Why it usually isn't a dealbreaker:</b> Many districts do pay for IEEs with IDEA Part B money, so EDGAR may well apply. But even then, EDGAR doesn't require the district's own contract form. The few clauses it needs, such as a termination clause, can be added to your evaluator's agreement. And a purchasing rule can't take away your right to choose a qualified evaluator.",
+  ask:"Ask the district two questions in writing: Which specific EDGAR rule requires the district's own contract? Can the required clauses be added to the evaluator's agreement instead?",
+  p:e=>`The district has said federal purchasing rules (EDGAR) require its own contract form. Please identify the specific provision that requires the district's own contract, and confirm whether any required clauses can be added to ${e}'s agreement instead.`},
+ {g:"Contract and paperwork", id:"ferpa", t:"Designate the evaluator a \"school official\"", said:"FERPA requires us to designate you as a school official to share records.",
+  law:"FERPA lets a district share records with written parent consent (34 C.F.R. § 99.30). The \"school official\" exception is an alternative route for sharing without consent, not a requirement. A school official designation also places the evaluator under district control, which sits uneasily with independence.",
+  ask:"Sign a release for the evaluator and ask the district to share records on that basis instead.",
+  p:e=>`The district has asked that the evaluator be designated a "school official." I have provided, or will provide, written consent for the district to share my child's records with ${e}, which FERPA permits (34 C.F.R. § 99.30). Please proceed on that basis.`},
+ {g:"Contract and paperwork", id:"packet", wide:1, flagLabel:"Requirements districts pile on", t:"Vendor packets, trainings and approvals", said:"Before we can contract, complete our vendor application, watch our workplace training video, sign the drug-free workplace form and get fingerprinted. Then we'll issue a purchase order.",
+  law:"<b>The evaluators are employees of the evaluation company, not the district.</b> At CDA, practitioners are employed by CDA, which handles its own hiring, background clearance and workplace policies. District onboarding, such as training videos and drug-free workplace forms, is a condition of being a district employee. An IEE examiner is, by definition, someone the district does not employ <span class='cite'>34 C.F.R. § 300.502(a)(3)(i)</span>.<br><br>The criteria a district may apply are about the evaluation itself: where it takes place, the examiner's qualifications and reasonable cost <span class='cite'>§ 300.502(e)</span>. Employee onboarding isn't one of them. What an outside evaluator reasonably provides is a W-9 and a certificate of insurance.<br><br><b>Vendor approval and purchase orders</b> are how the district pays its bills. Once it approves an IEE, the district must make sure the evaluation happens without unnecessary delay, so its internal steps can't hold up your child's evaluation.",
+  ask:"Ask the district to sign the evaluator's IEE agreement. With the W-9 and certificate of insurance in hand, a signed agreement is all that's needed to schedule the evaluation. Anything else, like vendor approval or purchase orders, is for the district to handle on its own side. If it won't sign, the delay itself can be raised in a state complaint, and you can pay privately and seek reimbursement, which needs no vendor setup at all.",
+  flags:[
+   ["vendorapp","Apply and be approved as a district vendor","approval as a district vendor before the evaluation can be scheduled"],
+   ["po","Wait for a purchase order","waiting for the district to issue an internal purchase order"],
+   ["video","Watch a workplace or safety training video","completing district workplace or training videos"],
+   ["drugfree","Sign a drug-free workplace certification","a drug-free workplace certification"],
+   ["fp","Get fingerprinted through the district","district fingerprinting of the evaluators"],
+   ["forms","Extra vendor forms and portal uploads","additional vendor forms and portal uploads"]
+  ],
+  p:(e,f)=> f.length
+    ? `The district has asked ${e} to complete the following before the evaluation can begin:\n${f.map(x=>`  • ${x}`).join("\n")}\n${e}'s evaluators are employees of ${e}, not of the district, and ${e} manages its own hiring, background clearance and workplace policies. District employee onboarding is not among the criteria allowed by 34 C.F.R. § 300.502(e), which concern the location of the evaluation, the qualifications of the examiner and reasonable cost. ${e} has provided, or will provide, its W-9 and certificate of insurance. Vendor approval and purchase orders are the district's own internal processes and should not delay my child's IEE. Please sign ${e}'s IEE agreement so the evaluation can be scheduled.`
+    : `${e} has provided, or will provide, its W-9 and certificate of insurance. Please sign ${e}'s IEE agreement so the evaluation can be scheduled.`},
+ {g:"Contract and paperwork", id:"payment", t:"Payment depends on the district's review of the report", said:"Payment may be withheld until the district accepts the evaluation.",
+  law:"An IEE is meant to be independent. Contract terms that let the district reduce or withhold payment based on whether it agrees with the findings give the district control over the outcome.",
+  ask:"Ask that payment terms depend on delivery of the report, not on the district's approval of what it says.",
+  p:e=>`The proposed agreement makes payment depend on the district's review or approval of the evaluation findings. Because the evaluation must be independent, I ask that this term be removed.`},
+
+ {g:"Insurance and background checks", id:"sam", t:"Sexual abuse and molestation insurance", said:"Your evaluator must carry sexual abuse and molestation coverage.",
+  law:"Insurance isn't one of the criteria the regulation names. A district may apply the same criteria it uses for its own evaluations, and it \"may not impose other conditions.\" A costly policy most small practices don't carry can shut out qualified evaluators.",
+  ask:"Ask where this appears in the district's written IEE criteria, and whether the district requires the same coverage of its own evaluators and contractors.",
+  p:e=>`The district has required sexual abuse and molestation insurance. This is not among the criteria allowed by 34 C.F.R. § 300.502(e). Please show me where it appears in the district's written IEE criteria, and confirm whether the district requires the same coverage of its own evaluators.`},
+ {g:"Insurance and background checks", id:"addins", t:"Add the district as an additional insured", said:"Add the district as an additional insured on your professional liability policy.",
+  law:"This isn't among the criteria the regulation allows. Many carriers will add a district once the district asks in writing, so a short written request from the district is often the fastest fix.",
+  ask:"Ask the district to send its written additional-insured request right away, or explain where the requirement appears in its written criteria.",
+  p:e=>`The district has asked to be added as an additional insured. If the district requires this, please send ${e} the written request its insurance carrier needs right away, and show me where the requirement appears in the district's written IEE criteria.`},
+ {g:"Insurance and background checks", id:"fingerprint", t:"District fingerprinting of the evaluators", said:"Each evaluator has to be fingerprinted through the district.",
+  law:"Evaluators hired by a practice like CDA are that practice's employees, not district employees. Most states that address this put background clearance on the contracting company, or tie it to regular, unsupervised contact with students.",
+  ask:"Ask the district to accept the evaluator's written certification of background clearance instead of repeating it.",
+  p:e=>`The district has required its own fingerprinting of the evaluators. They are employees of ${e}, not of the district, and ${e} has completed its own background clearance. Please accept ${e}'s written certification of clearance.`,
+  st:{CA:"The contracting company submits fingerprints to the Department of Justice and certifies to the district in writing that its staff are cleared. <span class='cite'>Cal. Educ. Code § 45125.1</span>",
+      TX:"A qualified school contractor runs the national criminal history review through the state clearinghouse and certifies it to the district. <span class='cite'>Tex. Educ. Code § 22.0834</span>",
+      AZ:"Contractors who provide services at a school on a regular basis must hold a DPS fingerprint clearance card, which the evaluator obtains. A one-time IEE may not be \"regular\" at all. <span class='cite'>A.R.S. § 15-512(H)</span>",
+      WA:"Contractors must run a State Patrol and FBI fingerprint check on employees with regularly scheduled, unsupervised access to children. The contractor is responsible. <span class='cite'>RCW 28A.400.303</span>",
+      IL:"Illinois runs it the other way: the district conducts fingerprint checks of contractor employees with direct, daily contact with students, and the contractor pays. An IEE evaluator usually doesn't have daily contact. <span class='cite'>105 ILCS 5/10-21.9</span>",
+      UT:"Background checks apply to contract employees with significant unsupervised access to students. An evaluator who tests under supervision may not meet that test. <span class='cite'>Utah Code § 53G-11-402</span>",
+      OR:"The state education department may require fingerprints of contractors with direct, unsupervised contact with students, submitted through the district. <span class='cite'>ORS 326.603</span>",
+      MA:"Fingerprint checks apply to school staff and certain contractors with potential unmonitored contact with children. Ask whether the district applies the same rule to its own contracted evaluators. <span class='cite'>M.G.L. c. 71, § 38R</span>"},
+  stDefault:"We didn't find a state law requiring districts to re-fingerprint an outside evaluator's staff. Ask for the district's written policy and whether it applies to its own contracted evaluators."},
+
+ {g:"Evaluator, location and fees", id:"criteria", t:"\"You don't meet our guidelines\"", said:"The evaluator doesn't meet district guidelines or staff qualifications.",
+  law:"The district must give parents its IEE criteria in writing and can only hold evaluators to the standards it uses for its own evaluations, such as licensure it requires of its own staff (OSEP, Letter to Savit, 2016).",
+  ask:"Ask for the written criteria and for the specific criterion the district says is not met.",
+  p:e=>`The district has said the evaluator does not meet its guidelines. Please send me the district's written IEE criteria and identify the specific criterion you believe is not met.`,
+  st:{MA:"Massachusetts also has an income-based route to a publicly funded IEE, separate from the disagreement route. <span class='cite'>603 CMR 28.04(5)</span>",
+      IL:"Illinois keeps a suggested IEE list through the State Board and limits clinical psychologists' fees on that list to what a school psychologist would be paid. <span class='cite'>105 ILCS 5/14-8.02</span>"}},
+ {g:"Evaluator, location and fees", id:"location", t:"\"Your office is too far away\"", said:"Your office is outside our approved radius.",
+  law:"The regulation allows criteria about the location of the evaluation, meaning where your child is tested, not where the evaluator's office sits. The district must apply the same limit to its own evaluators and allow exceptions when no qualified evaluator is within it.",
+  ask:"Ask where the district requires the evaluation to take place, and confirm the evaluator will test your child there.",
+  p:e=>`The district has said the evaluator's office is too far away. The location criterion in 34 C.F.R. § 300.502(e) concerns where the evaluation takes place. Please tell me where the district requires the evaluation to occur and whether the same limit applies to its own evaluators.`},
+ {g:"Evaluator, location and fees", id:"cost", t:"\"The fee is over our cap\" or a lower counteroffer", said:"Your rate is higher than we typically pay. Would you accept less than half?",
+  law:"Districts may set reasonable cost criteria, but must let parents show that unique circumstances justify going over them (OSEP, Letter to Parker, 2004). A counteroffer far below market isn't a published criterion.",
+  ask:"Ask for the district's written cost criteria. If no qualified evaluator is available within them, ask for an exception in writing and explain your child's needs.",
+  p:e=>`The district has said the evaluator's fee is above what it typically pays. Please send me the district's written cost criteria. If no qualified evaluator is available within that limit, I am requesting an exception based on my child's needs.`,
+  st:{IL:"Illinois caps fees for licensed clinical psychologists on the State Board's IEE list at the school psychologist rate. <span class='cite'>105 ILCS 5/14-8.02</span>",
+      MA:"In Massachusetts, the income-based route sets how much of the cost the district must pay. <span class='cite'>603 CMR 28.04(5)</span>"}},
+ {g:"Evaluator, location and fees", id:"list", t:"\"Pick someone from our list instead\"", said:"The evaluator won't sign our documents. Please choose an assessor from our list.",
+  law:"Parents choose the evaluator. A district can't require families to use its list when another qualified evaluator meets the same criteria. Families sometimes hear only the district's side of why contracting stalled.",
+  ask:"Ask your evaluator for its side in writing before deciding, and tell the district in writing which evaluator you have chosen.",
+  p:e=>`The district has asked me to choose a different evaluator from its list. I have chosen ${e}. I am not limited to the district's list as long as the evaluator meets the district's criteria.`},
+ {g:"Evaluator, location and fees", id:"settlement", t:"The IEE came from a settlement agreement", said:"The terms of the agreement authorizing this IEE are confidential and require our contracting process.",
+  law:"A settlement agreement is a contract. If it set conditions for the IEE, such as evaluator qualifications or contracting steps, those terms can control instead of the general federal rule. Read the agreement, or ask your attorney, before pushing back.",
+  ask:"Share the relevant terms with your evaluator, and ask the district which specific term it says the evaluator doesn't meet.",
+  p:e=>`This IEE was agreed to in a settlement agreement. Please identify the specific term of that agreement the district believes ${e} does not meet.`},
+
+ {g:"Access and records", id:"precontract", t:"Extra steps before the evaluation can start", said:"The evaluator must meet with us first, or you must sign our new release forms.",
+  law:"Colorado found that requiring private scope-setting meetings between the district and evaluator, and requiring a records release before the IEE begins, were improper added conditions (SC2025-609).",
+  ask:"Ask the district to sign the agreement now and handle records requests on a normal timeline.",
+  p:e=>`The district has required additional steps before the evaluation can begin. These steps are not part of the district's IEE criteria, and I ask that the agreement be signed without them.`},
+ {g:"Access and records", id:"protocols", t:"Free copies of test protocols", said:"Update your rate sheet to include copies of all test protocols.",
+  law:"Families have a right to inspect their child's records. Copying commercial test protocols raises test-security and copyright limits that apply to district evaluators too. A demand to include protocols in the price isn't an IEE criterion unless the district's own evaluators meet the same standard.",
+  ask:"Ask which written criterion requires it, and whether the district's own evaluators release protocols on the same terms.",
+  p:e=>`The district has asked for copies of test protocols as a condition of contracting. Please explain which IEE criterion requires this, and whether the district's own evaluators release protocols on the same terms.`},
+ {g:"Access and records", id:"observe", t:"Limits on classroom observation", said:"We can't host a virtual observation. You may observe only at these times, or alongside the parent.",
+  law:"Federal guidance says outside evaluators should get observation access equal to the district's own evaluators, with the same time limits, scheduled to limit disruption (OSERS, Letter to Anonymous, 2018). A district can have real privacy reasons to refuse a livestream of a full classroom.",
+  ask:"Ask for the same observation time, settings and number of visits the district's own evaluator had, in writing.",
+  p:e=>`The district has limited the evaluator's classroom observation. Please provide ${e} the same observation access, in time, setting and number of visits, that the district's own evaluators receive.`,
+  st:{CA:"California gives an independent evaluator the same chance to observe that the district had, including in the current placement and any proposed placement. <span class='cite'>Cal. Educ. Code § 56329(c)</span>",
+      MA:"Evaluators get timely and sufficient access to observe the current and proposed programs. Limits are allowed only for safety, program integrity, or other students' privacy. <span class='cite'>M.G.L. c. 71B, § 3</span>",
+      IL:"Evaluators must get reasonable access of sufficient duration and scope to observe. <span class='cite'>105 ILCS 5/14-8.02</span>"}},
+
+ {g:"Delays", id:"silence", t:"Slow or no responses", said:"Emails go unanswered, e-sign requests are \"never received,\" or each reply raises a new issue.",
+  law:"Approval in a Prior Written Notice doesn't end the district's duty. It must ensure the IEE is provided without unnecessary delay, and a contract left unsigned for weeks can be that delay.",
+  ask:"Set a date for a signed agreement or specific written objections, and keep copies of every message.",
+  p:e=>`Messages to the district about the agreement have gone unanswered or been met with new requirements, one at a time.`,
+  stFn:s=>s.ieeN ? `${s.ieeText} <span class='cite'>${s.ieeCite}</span>` : ""}
+];
+const RBP = Object.fromEntries(RB.map(r=>[r.id,r.p]));
+function rbStateLine(r){
+  if(curState==="US") return "";
+  const s=S(); let t = (r.st && r.st[curState]) || (r.stFn && r.stFn(s)) || "";
+  if(!t) t = r.stDefault ? r.stDefault : `${s.name} follows the federal rule here.`;
+  return `<div class="rb-state"><b>In ${s.name}:</b> ${t}</div>`;
+}
+function renderRB(){
+  const picked = new Set([...document.querySelectorAll(".rbx:checked")].map(x=>x.value));
+  const fpicked = new Set([...document.querySelectorAll(".rbf:checked")].map(x=>x.value));
+  if(!renderRB.done){ ["contract","fingerprint","silence"].forEach(k=>picked.add(k)); ["edit","withhold","nocontact","indemnity"].forEach(k=>fpicked.add(k)); renderRB.done=true; }
+  const groups=[...new Set(RB.map(r=>r.g))];
+  L("rbGroups").innerHTML = groups.map(g=>`<div class="rb-group"><h3 class="gh">${g}</h3><div class="rb-grid">${
+    RB.filter(r=>r.g===g).map(r=>`<article class="rb${picked.has(r.id)?" on":""}${r.wide?" wide":""}" id="rb-${r.id}">
+      <div class="rb-top"><h3>${r.t}</h3><label class="tog"><input type="checkbox" class="rbx" id="rbx-${r.id}" value="${r.id}"${picked.has(r.id)?" checked":""}> Add to letter</label></div>
+      <p class="said">“${r.said}”</p>
+      <dl><div><dt>What the rules say</dt><dd>${r.law}</dd></div>${r.flags?`<div><dt>${r.flagLabel||"Contract terms to watch for"}</dt><dd><p class="hint" style="margin-bottom:6px">Check any the district raised; they go into your letter.</p><div class="flags">${r.flags.map(f=>`<label><input type="checkbox" class="rbf" id="rbf-${f[0]}" value="${f[0]}"${fpicked.has(f[0])?" checked":""}> ${f[1]}</label>`).join("")}</div></dd></div>`:""}<div><dt>What to ask for</dt><dd>${r.ask}</dd></div></dl>
+      ${rbStateLine(r)}
+    </article>`).join("")}</div></div>`).join("");
+}
+L("rbGroups").addEventListener("change", e=>{ if(e.target.classList.contains("rbx")||e.target.classList.contains("rbf")) renderApproved(); });
+L("cPwn").value = iso(add(today,-42)); L("cSent").value = iso(add(today,-35));
+function renderApproved(){
+  if(!renderRB.done) renderRB();
+  const v=id=>L(id).value.trim();
+  const child=v("cChild")||"[child's name]", ev=v("cEval")||"[evaluator]", evShort=ev.replace(/\s*\(.*\)\s*/,"").trim()||ev;
+  const pwn=parse(v("cPwn")), sent=parse(v("cSent"));
+  const picked=[...document.querySelectorAll(".rbx:checked")].map(x=>x.value);
+  document.querySelectorAll(".rb").forEach(c=>c.classList.toggle("on", picked.includes(c.id.slice(3))));
+  let t = `${longFmt(today)}\n\nDirector of Special Education\n${v("cDistrict")||"[school district]"}\n\nRe: Delay in providing the approved IEE for ${child}\n\nDear Director,\n\n`;
+  t += `${pwn?`On ${longFmt(pwn)}, the`:"The"} district agreed in Prior Written Notice to fund an independent educational evaluation for ${child} in ${v("cAreas")||"[areas]"}. I selected ${ev} to conduct it.${sent?` ${evShort} sent the district its agreement on ${longFmt(sent)}.`:""} As of today, the evaluation has not been able to begin.\n\n`;
+  t += `Under 34 C.F.R. § 300.502, the district must ensure that the IEE is provided at public expense without unnecessary delay. Apart from the criteria the district uses for its own evaluations, such as the location of the evaluation and the qualifications of the examiner, the district may not impose other conditions or timelines on an IEE.`;
+  RB.forEach(r=>{ if(picked.includes(r.id)){ const f=(r.flags||[]).filter(x=>{ const el=L("rbf-"+x[0]); return el&&el.checked; }).map(x=>x[2]); t += `\n\n${r.p(evShort, f)}`; } });
+  t += `\n\nWithin ${v("cDays")} business days, please either sign the agreement with ${evShort} or tell me in writing which of the district's IEE criteria you believe ${evShort} does not meet, with a copy of those written criteria. If the issue is not resolved, I will consider filing a state complaint.\n\nSincerely,\n\n${v("cParent")||"[your name]"}\n\ncc: ${ev}`;
+  L("cPaper").textContent = t;
+  let w="";
+  if(sent){
+    const d=Math.max(Math.round((today-sent)/864e5),0), tone=d>30?"t-stop":d>14?"t-act":"t-go";
+    w = `<div class="elapsed ${tone}"><p><b style="font-family:var(--mono);font-size:22px">${d}</b> days since the agreement was sent</p><div class="bar"><i style="width:${Math.min(d/60*100,100)}%"></i></div></div>`;
+  }
+  L("cWait").innerHTML = w;
+}
+document.querySelectorAll("#v-approved .form input, #v-approved .form select").forEach(el=>el.addEventListener("input",renderApproved));
+L("cCopy").addEventListener("click",()=>{
+  const txt=L("cPaper").textContent, ok=()=>{L("cCopied").hidden=false; setTimeout(()=>L("cCopied").hidden=true,2000);};
+  const sel=()=>{ const r=document.createRange(); r.selectNodeContents(L("cPaper")); const g=getSelection(); g.removeAllRanges(); g.addRange(r); L("cCopied").textContent="Selected. Press Ctrl+C or ⌘C"; L("cCopied").hidden=false; };
+  try{ navigator.clipboard.writeText(txt).then(ok).catch(sel); }catch(e){ sel(); }
+});
+
+/* ---------- Where to file ---------- */
+const FILING = {
+ AK:{agency:"Alaska Department of Education and Early Development", hub:"https://education.alaska.gov/sped", complaint:"https://education.alaska.gov/apps/Complaints/", dp:null},
+ AZ:{agency:"Arizona Department of Education, Dispute Resolution", hub:"https://specialeducationdisputeresolution.azed.gov/", complaint:"https://www.azed.gov/sites/default/files/media/State%20Complaint%20Form_0.pdf", dp:"https://www.azed.gov/specialeducation/disputeresolution/dispute-resolution-forms"},
+ CA:{agency:"California Department of Education (complaints) and Office of Administrative Hearings (due process)", hub:"https://www.cde.ca.gov/SP/se/dr/", complaint:"https://www.cde.ca.gov/sp/se/cmplntproc.asp", dp:"https://www.dgs.ca.gov/OAH/Case-Types/Special-Education/Services/Page-Content/Special-Education-Services-List-Folder/Request-Special-Education-Due-Process-Hearing", med:"https://www.dgs.ca.gov/OAH/Case-Types/Special-Education/Services/Page-Content/Special-Education-Services-List-Folder/Request-Special-Education-Mediation"},
+ CO:{agency:"Colorado Department of Education, Exceptional Student Services", hub:"https://ed.cde.state.co.us/spedlaw/drcomparison", complaint:"https://www.cde.state.co.us/spedlaw/modelstatecomplaintform", dp:"https://www.cde.state.co.us/spedlaw/dueprocess", med:"https://www.cde.state.co.us/spedlaw/mediation"},
+ IL:{agency:"Illinois State Board of Education", hub:"https://www.isbe.net/Pages/Special-Education-Effective-Dispute-Resolution.aspx", complaint:"https://www.isbe.net/Pages/Special-Education-Effective-Dispute-Resolution.aspx", dp:"https://www.isbe.net/Pages/Special-Education-Effective-Dispute-Resolution.aspx"},
+ MA:{agency:"DESE Problem Resolution System (complaints) and Bureau of Special Education Appeals (hearings)", hub:"https://www.mass.gov/orgs/bureau-of-special-education-appeals", complaint:"https://www.doe.mass.edu/prs/", dp:"https://www.mass.gov/how-to/how-to-request-a-bsea-hearing", med:"https://www.mass.gov/how-to/request-for-mediation"},
+ NV:{agency:"Nevada Department of Education, Office of Comprehensive Student Services", hub:"https://doe.nv.gov/offices/office-of-comprehensive-student-services/dispute-resolution", complaint:"https://doe.nv.gov/offices/office-of-comprehensive-student-services/dispute-resolution/state-complaint", dp:"https://doe.nv.gov/offices/office-of-comprehensive-student-services/dispute-resolution/due-process-complaint"},
+ NY:{agency:"New York State Education Department, Office of Special Education", hub:"https://www.nysed.gov/special-education/state-complaint", complaint:"https://www.nysed.gov/special-education/state-complaint", dp:"https://www.nysed.gov/special-education/questions-and-answers-impartial-due-process-hearings-students-disabilities"},
+ OR:{agency:"Oregon Department of Education", hub:"https://www.oregon.gov/ode/rules-and-policies/Pages/Comprehensive-Dispute-Resolution-Guidance.aspx", complaint:"https://www.oregon.gov/ode/rules-and-policies/Pages/Comprehensive-Dispute-Resolution-Guidance.aspx", dp:"https://www.oregon.gov/ode/rules-and-policies/Documents/dphearingrequestinfosheetmodelform.pdf"},
+ TX:{agency:"Texas Education Agency", hub:"https://tea.texas.gov/special-populations-and-support/special-education/special-education-dispute-resolution-processes", complaint:"https://tea.texas.gov/special-populations-and-support/special-education/special-education-dispute-resolution-processes", dp:"https://tea.texas.gov/about-tea/government-relations-and-legal/special-education-hearings/office-general-counsel-special-education"},
+ UT:{agency:"Utah State Board of Education, Special Education Services", hub:"https://schools.utah.gov/specialeducation/programs/studentfamilyrights", complaint:"https://www.schools.utah.gov/specialeducation/_specialeducation/_studentfamilyrights/_disputeresolution/StudentFamilyIDEAStateComplaint.pdf", dp:"https://www.schools.utah.gov/specialeducation/_specialeducation/_studentfamilyrights/_disputeresolution/StudentFamilyDueProcessHearing.pdf"},
+ WA:{agency:"Office of Superintendent of Public Instruction (OSPI)", hub:"https://ospi.k12.wa.us/student-success/special-education/dispute-resolution", complaint:"https://ospi.k12.wa.us/student-success/special-education/dispute-resolution/file-community-complaint", dp:"https://ospi.k12.wa.us/student-success/special-education/dispute-resolution/request-due-process-hearing"},
+ WY:{agency:"Wyoming Department of Education, Special Education Programs", hub:"https://edu.wyoming.gov/parents/special-education/", complaint:"https://edu.wyoming.gov/wp-content/uploads/2025/10/State-Complaint-Request.pdf", dp:"https://edu.wyoming.gov/wp-content/uploads/2025/10/Due-Process-Hearing-Request.pdf"}
+};
+const fl = (url,title,desc)=>`<a class="flink" href="${url}" target="_blank" rel="noopener"><div><b>${title}</b><span class="d">${desc}</span></div><span class="arr" aria-hidden="true">↗</span></a>`;
+function renderFiling(){
+  const f = FILING[curState], s=S(); let left;
+  if(!f){
+    left = `<h2>Where to file</h2><p class="agency">Choose your state at the top of the page to see its official complaint and due process forms.</p>
+      <p style="font-size:14px">Every state education agency accepts written state complaints and due process requests. Its procedural safeguards notice lists the address.</p>`;
+  } else {
+    const term = curState==="WA" ? "community complaint" : curState==="MA" ? "PRS complaint" : "state complaint";
+    left = `<h2>Where to file in ${s.name}</h2><p class="agency">${f.agency}</p><div class="links">
+      ${fl(f.complaint, curState==="WA"?"File a community complaint":curState==="MA"?"File a PRS complaint":"File a state complaint", `For rule violations within the past year. Decision in 60 days.`)}
+      ${f.dp?fl(f.dp,"Request a due process hearing",`${s.hearShort}. File within ${solShort(s)}${curState==="OR"?" of the act":""}.`):""}
+      ${f.med?fl(f.med,"Request mediation","Free and voluntary. Available any time."):""}
+      ${f.hub!==f.complaint?fl(f.hub,"All dispute resolution options","State agency overview and forms"):""}
+    </div>`;
+  }
+  document.getElementById("filePanel").innerHTML = `<div style="min-width:0">${left}</div>
+    <div class="checklist"><h3>A state complaint must include</h3><ul>
+      <li>A statement that the district broke a special education rule, and the facts behind it</li>
+      <li>Your signature and contact information</li>
+      <li>Your child's name, address, and school</li>
+      <li>A description of the problem and the resolution you want</li>
+      <li>Events from no more than 1 year before you file</li>
+      <li>A copy sent to the school district at the same time</li>
+    </ul><p class="cite" style="white-space:normal;margin-top:10px">34 C.F.R. § 300.153</p></div>`;
+}
+
+/* ---------- Deadlines ---------- */
+L("dEval").value = iso(add(today,-120)); L("dReq").value = iso(add(today,-12)); L("dCon").value = iso(add(today,-20));
+L("dDP").value = iso(add(today,-10)); L("dDec").value = iso(add(today,-5)); L("dSC").value = iso(add(today,-10));
+let DL=[], GRP="";
+const li = (lab,d)=>{ DL.push({d,lab,g:GRP}); return `<li><span>${lab}</span><b>${fmt(d)}</b></li>`; };
+const liT = (lab,t)=>`<li class="plain"><span>${lab}</span><b>${t}</b></li>`;
+const addM = (d,n)=>{ const x=new Date(d); x.setMonth(x.getMonth()+n); return x; };
+const addSchool = (d,n)=>{ const x=new Date(d); let k=0; while(k<n){ x.setDate(x.getDate()+1); const w=x.getDay(); if(w!==0&&w!==6) k++; } return x; };
+function renderDl(){
+  const s=S(); DL=[]; renderFiling();
+  const e=parse(L("dEval").value), r=parse(L("dReq").value), c=parse(L("dCon").value), dp=parse(L("dDP").value), dec=parse(L("dDec").value), sc=parse(L("dSC").value);
+  const solLab = curState==="AK" ? "Due process window closes (12 months from written notice)" : curState==="OR" ? "Due process window closes (2 years from the act)" : `Due process window closes (${solShort(s)}, approx.)`;
+  GRP="District evaluation";
+  L("oEval").innerHTML = e ? li(solLab,addM(e,s.sol)) + li("State complaint window closes (approx.)",addM(e,12)) + li("Next three-year reevaluation due by",addM(e,36)) : "";
+
+  GRP="IEE request";
+  let reqDl = "";
+  if(r && s.ieeN){
+    const due = s.ieeU==="school" ? addSchool(r,s.ieeN) : add(r,s.ieeN);
+    reqDl = li(`District must ${curState==="MA"?"respond":"file for due process"} by${s.ieeU==="school"?" (est.)":""}`, due);
+  } else if(r) reqDl = liT(`${curState==="US"?"Federal":s.name} deadline`,"No set number of days");
+  L("oReqDl").innerHTML = reqDl;
+  if(r){
+    const days=Math.round((today-r)/864e5);
+    let tone="go", msg="Recent. Give the district a reasonable chance to respond in writing.", cap=90;
+    if(s.ieeN){
+      const due = s.ieeU==="school" ? addSchool(r,s.ieeN) : add(r,s.ieeN);
+      cap = Math.max(Math.round((due-r)/864e5)*2, 10);
+      if(days<0){ msg="This date is in the future."; }
+      else if(today>due){ tone="stop"; msg=`The ${s.name} deadline has passed. If the district hasn't agreed to pay or filed for due process, it has missed a state deadline. Consider a state complaint or your own due process filing.`; }
+      else { tone="act"; msg=`Within the ${s.name} response window. Note the deadline date above.`; }
+    } else {
+      if(days<0){ msg="This date is in the future."; }
+      else if(days>60){ tone="stop"; msg="A long wait. If the district hasn't funded the IEE or filed for due process, consider a state complaint or your own due process filing."; }
+      else if(days>30){ tone="act"; msg="No set day count applies, but this is a good time to send a written follow-up if you haven't heard back."; }
+    }
+    L("oReq").className="elapsed t-"+tone;
+    L("oReq").innerHTML = `<p><b style="font-family:var(--mono);font-size:22px">${Math.max(days,0)}</b> days since your request</p><div class="bar"><i style="width:${Math.min(Math.max(days,0)/cap*100,100)}%"></i></div><p style="color:var(--muted)">${msg}</p>`;
+  } else { L("oReq").innerHTML=""; }
+
+  GRP="Evaluation consent";
+  let con = "";
+  if(c){
+    if(s.evalU==="school") con = li(`${evalShort(s)}: earliest likely date`, addSchool(c,s.evalN)) + liT("Note","Weekends skipped only. Add holidays and breaks.");
+    else if(s.evalU==="calx") con = li("60 days from consent (before breaks)", add(c,60)) + liT("Note","Add any school vacation longer than 5 school days.");
+    else con = li(`Evaluation due by (${evalShort(s)})`, add(c,s.evalN));
+  }
+  L("oCon").innerHTML = con;
+
+  GRP="Due process";
+  L("oDP").innerHTML = dp ? li("Resolution meeting held by",add(dp,15)) + li("Resolution period ends",add(dp,30)) + li("Hearing decision due",add(dp,75)) : "";
+
+  GRP="Hearing decision";
+  let dl = "";
+  if(dec){
+    if(s.sro){ dl = li(s.sro.label, add(dec,s.sro.days)); if(curState==="NV"){ dl += li("SRO decision due (approx.)", add(dec,60)); dl += liT("Court action","Within 90 days after the SRO decision"); } else dl += liT("Court action","Follows the SRO decision"); }
+    else if(s.court) dl = li(`Court appeal deadline${curState==="US"?" (unless state differs)":""}`, add(dec,s.court));
+    else dl = liT("Court appeal deadline","Set by state court rules. Confirm with counsel.");
+  }
+  L("oDec").innerHTML = dl;
+
+  GRP="State complaint";
+  L("oSC").innerHTML = sc ? li("Written decision due",add(sc,60)) : "";
+  renderTimeline();
+}
+function renderTimeline(){
+  const items = DL.filter(x=>x.d>=add(today,-30)).sort((a,b)=>a.d-b.d);
+  const el = document.getElementById("timeline");
+  if(!items.length){ el.innerHTML = `<li class="empty t-go" style="display:block">Enter dates below to build your deadline list.</li>`; return; }
+  el.innerHTML = items.map(x=>{
+    const n=Math.round((x.d-today)/864e5);
+    const tone = n<0?"t-stop":n<=14?"t-act":"t-go";
+    const pill = n<0?`${-n} day${n===-1?"":"s"} ago`:n===0?"Today":`in ${n} day${n===1?"":"s"}`;
+    return `<li class="${tone}"><span class="dt">${fmt(x.d)}</span><span class="lab"><small>${x.g}</small>${x.lab}</span><span class="pill">${pill}</span></li>`;
+  }).join("");
+}
+document.getElementById("copyDates").addEventListener("click",()=>{
+  const txt = `Deadlines (${curState==="US"?"federal rules":S().name}) from the CDA IEE Navigator\n` + DL.filter(x=>x.d>=add(today,-30)).sort((a,b)=>a.d-b.d).map(x=>`${fmt(x.d)}  ${x.g}: ${x.lab}`).join("\n");
+  const ok=()=>{L("copiedDates").hidden=false; setTimeout(()=>L("copiedDates").hidden=true,2000);};
+  const sel=()=>{ const r=document.createRange(); r.selectNodeContents(L("timeline")); const g=getSelection(); g.removeAllRanges(); g.addRange(r); L("copiedDates").textContent="Selected. Press Ctrl+C or ⌘C"; L("copiedDates").hidden=false; };
+  try{ navigator.clipboard.writeText(txt).then(ok).catch(sel); }catch(e){ sel(); }
+});
+["dEval","dReq","dCon","dDP","dDec","dSC"].forEach(id=>L(id).addEventListener("input",renderDl));
+
+/* ---------- Routing ---------- */
+const VIEWS=["navigator","basics","states","options","letter","approved","deadlines"];
+let curView = "navigator";
+function showView(v){
+  if(!VIEWS.includes(v)) v="navigator";
+  curView = v;
+  document.querySelectorAll("[data-view]").forEach(s=>s.hidden = s.dataset.view!==v);
+  document.querySelectorAll("nav.tabs a").forEach(a=>a.setAttribute("aria-current", a.getAttribute("href")==="#"+v?"page":"false"));
+}
+function go(v){
+  showView(v);
+  try{ history.replaceState(null, "", "#"+v); }catch(e){}
+  try{ document.querySelector("nav.tabs").scrollIntoView({block:"nearest"}); }catch(e){}
+}
+function route(){ let h=""; try{ h=(location.hash||"").slice(1); }catch(e){} showView(h); }
+document.addEventListener("click", e=>{
+  const a = e.target.closest('a[href^="#"]');
+  if(!a) return;
+  const v = a.getAttribute("href").slice(1);
+  if(VIEWS.includes(v)){ e.preventDefault(); go(v); }
+});
+window.addEventListener("hashchange", ()=>{ let h=""; try{ h=(location.hash||"").slice(1); }catch(e){} if(VIEWS.includes(h) && h!==curView) showView(h); });
+function renderAll(){ stateLine(); renderNav(); renderOpts(); renderLetter(); renderRB(); renderApproved(); renderDl(); renderStates(); }
+renderAll(); route();
+</script>
+
+<script>
+(function(){
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'';if(/^https?:/i.test(h)&&!a.target){a.target='_blank';a.rel='noopener'}},true);
+var inFrame=false;try{inFrame=window.self!==window.top}catch(e){inFrame=true}
+if(!inFrame)return;
+var last=0;function send(){var h=Math.ceil(document.body.getBoundingClientRect().height);if(h&&Math.abs(h-last)>1){last=h;try{parent.postMessage({cdaNavHeight:h},'*')}catch(e){}}}
+addEventListener('load',send);addEventListener('resize',send);
+document.addEventListener('DOMContentLoaded',function(){if(window.ResizeObserver)new ResizeObserver(send).observe(document.body);send()});
+setInterval(send,1500);
+})();
+</script></body></html>
