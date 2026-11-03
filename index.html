@@ -5773,7 +5773,10 @@ $('type').onchange=e=>{S.type=e.target.value;refresh()};
 $('min').oninput=e=>{S.min=+e.target.value;$('minv').textContent=S.min;refresh()};
 $('lang').onchange=e=>{S.lang=e.target.value;try{localStorage.setItem('cdaLang',S.lang)}catch(_){};applyLang()};
 $('view').onclick=()=>{S.view=S.view==='3d'?'2d':'3d';syncTools();map.easeTo({pitch:S.view==='3d'?52:0,bearing:S.view==='3d'?-12:0,duration:800})};
-$('newlink').onclick=e=>{e.preventDefault();if(S.mode==='state')select(null);S.showNew=true;renderSide();if(narrow.matches)side.scrollIntoView({behavior:'smooth'})};
+function goSide(){const em=document.documentElement.classList.contains('embed');let inF=false;try{inF=window.self!==window.top}catch(e){inF=true}
+  if(em&&inF){const y=Math.max(0,Math.round(side.getBoundingClientRect().top+window.scrollY)-12);try{parent.postMessage({cdaMapScrollTo:y},'*')}catch(e){}}
+  if(em||narrow.matches)side.scrollIntoView({behavior:'smooth',block:'start'})}
+$('newlink').onclick=e=>{e.preventDefault();if(S.mode==='state')select(null);S.showNew=true;renderSide();goSide()};
 $('reset').onclick=()=>{if(S.mode==='state')select(null);home()};
 $('listb').onclick=()=>{S.list=!S.list;listv.hidden=!S.list;syncTools();if(S.list)renderList()};
 let timer=null;
