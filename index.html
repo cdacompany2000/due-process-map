@@ -190,8 +190,9 @@ html.embed .col{overflow:visible}
 html.embed .ctl{border:0;border-bottom:1px solid var(--line);order:1}
 html.embed .ctlgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
 html.embed .ctlgrid .wide{grid-column:1/-1}
-html.embed .mapwrap{order:2;height:clamp(420px,56vw,680px);min-height:0}
+html.embed .mapwrap{order:2;width:min(100% - 32px,1040px);align-self:center;margin:16px auto;height:clamp(340px,40vw,540px);min-height:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 html.embed .side{order:3;border:0;border-top:1px solid var(--line);padding-left:max(16px,3vw);padding-right:max(16px,3vw)}
+@media (max-width:560px){.ovt th,.ovt td{padding-inline:4px}.ovt td.ovo{font-size:10.5px}.ovt td.ovo>span{margin-inline:1px;gap:1px}.ovt td.ovo .dot{width:6px;height:6px}.ovt th{font-size:10px;letter-spacing:.04em}.ovt .spill{padding:0 5px;font-size:10px}}
 </style>
 
 <div class="app">
