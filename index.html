@@ -5585,7 +5585,7 @@ function renderOverview(){
   side.innerHTML=`${f?`<div><h2>${esc(stName(f))} <span class="spill ${STATES[f].live?'on':'soon'}">${STATES[f].live?t('live'):t('soon')}</span></h2>${STATES[f].live?'':`<p class="hint">${t('soonNote')}</p>`}${rulesDl(f)}</div>`:''}
   <div><h2>${t('ovH')}</h2><div class="meta">${t('ovSub')}</div><label class="ovyr"><span>${t('year')}</span><select id="ovyear">${ovYearOpts()}</select></label><div class="keys" style="margin-top:6px">${['parent','district','split','other'].map(c=>`<span><span class="dot" style="background:var(--${c==='district'?'dist':(c==='other'?'ink3':c)})"></span>${t(c)}</span>`).join('')}</div></div>
   <table class="ovt"><thead><tr><th>${t('stateCol')}</th><th></th><th style="text-align:center">${t('prevailed')}</th><th style="text-align:end">${esc(t('decY').replace('{y}',S.year==='all'?t('allYears'):S.year))}</th></tr></thead><tbody>${ord.map(k=>`<tr data-c="${k}"><td>${esc(stName(k))}</td><td><span class="spill ${STATES[k].live?'on':'soon'}">${STATES[k].live?t('live'):t('soon')}</span></td><td class="ovo">${STATES[k].live&&!STATES[k].nopub?ovOut(k):''}</td><td class="n">${STATES[k].live?nf(cnt[k]):'–'}</td></tr>`).join('')}</tbody><tfoot><tr><td><b>${t('total')}</b></td><td></td><td class="ovo">${ovOutTot()}</td><td class="n"><b>${nf(ORDER.reduce((a,k)=>a+(STATES[k].live?(cnt[k]||0):0),0))}</b></td></tr></tfoot></table>
-  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_blank" rel="noopener">${t('iee')}</a><a class="lnk" href="${RECAP_URL}" target="_blank" rel="noopener">${t('recap')} →</a></div>`;
+  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_top">${t('iee')}</a><a class="lnk" href="${RECAP_URL}" target="_blank" rel="noopener">${t('recap')} →</a></div>`;
   side.querySelectorAll('.ovt tr[data-c]').forEach(el=>el.onclick=()=>openState(el.dataset.c));
   const oy=side.querySelector('#ovyear');if(oy){oy.value=String(S.year);oy.onchange=e=>{stopPlay();S.year=e.target.value==='all'?'all':+e.target.value;const y=$('year');if(y&&[...y.options].some(o=>o.value===e.target.value))y.value=e.target.value;refresh()}}
 }
@@ -5640,7 +5640,7 @@ ${STATES[CUR].nopub?'':`  <div><h3>${t('fewerD')} · ${win}</h3>${li(fewer,r=>`$
   <div class="why">${FIL[CUR]?`<h3>${t('qH')}</h3>`+filedBox():''}${hasReq()?'':`<h3>${t('filedWhyH')}</h3><p>${ts('a2')}</p>`}</div>
   <div><h3>${t('rules')}</h3><ul class="facts">${['f1','f2','f3','f4','f5','f6'].map(k=>`<li>${ts(k)}</li>`).join('')}</ul><div class="real">${ts('s1')}</div></div>
   ${aboutHTML()}
-  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_blank" rel="noopener">${t('iee')}</a><a class="lnk" href="${RECAP_URL}" target="_blank" rel="noopener">${t('recap')} →</a></div>`;
+  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_top">${t('iee')}</a><a class="lnk" href="${RECAP_URL}" target="_blank" rel="noopener">${t('recap')} →</a></div>`;
   side.querySelectorAll('.tl li').forEach(el=>el.onclick=()=>select(+el.dataset.id,true));
   const mb=document.getElementById('decmore');if(mb)mb.onclick=()=>{DECN+=30;const y=side.scrollTop;renderGlance();side.scrollTop=y};
 }
@@ -5671,7 +5671,7 @@ function renderDistrict(id){
   <div><h3>${t('decided')} (${nf(decs.length)})</h3>${decs.length?decs.slice(0,25).map(x=>`<a class="dec" href="${x.u||STATES[CUR].search}" target="_blank" rel="noopener" title="${x.u?t('openDec'):t('searchDec')}: ${x.cn}"><div class="top2"><span class="cn">${x.dt} · ${x.cn}</span><span class="pill p-${x.p}">${t(x.p)}</span></div><div>${/^Review decision/.test(x.cn)?t('sro'):jl(CUR)}: ${esc(x.alj||'–')}${x.x?' · <span class="pill" style="color:var(--ink2);border-width:1px">Expedited</span>':''}</div><div class="is">${x.iss.map(iss).join(' · ')} · ${t('filedBy')} ${t(x.f).toLowerCase()}</div><span class="open">${x.u?t('openDec'):t('searchDec')} ↗</span></a>`).join(''):`<p class="hint">${t('none')}</p>`}</div>
   ${hasReq()?`<div><h3>${t('filed')} (${nf(reqList(p.cds,ys).length)})</h3><p class="hint" style="margin:0 0 6px">${ts('rqNote')}</p>${reqHTML(reqList(p.cds,ys),false)}</div>`:`<div class="why"><h3>${t('filedWhyH')}</h3><p>${ts('a2')}</p></div>`}
   ${aboutHTML()}
-  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_blank" rel="noopener">${t('iee')}</a>
+  <div class="cta"><a class="btn pri" href="${IEE_URL}" target="_top">${t('iee')}</a>
    <form id="alert"><label class="lbl" for="em">${t('alertH')}</label><div class="row"><input id="em" type="email" required placeholder="${t('email')}" style="flex:1;min-width:0"><button class="btn" type="submit">${t('signup')}</button></div><p class="msg" id="am" hidden>${t('thanks')}</p></form>
    <a class="lnk" href="${RECAP_URL}" target="_blank" rel="noopener">${t('recap')} →</a></div>`;
   document.getElementById('cls').onclick=()=>select(null);

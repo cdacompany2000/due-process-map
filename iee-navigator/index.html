@@ -261,7 +261,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
     <div class="brand">Cognitive Diagnostic Associates · Family Resource</div>
     <h1>IEE <span>Navigator</span></h1>
     <p class="lede">Disagree with your child's school evaluation? Answer a few yes-or-no questions to see where you stand, which dispute options fit, and what to send next.</p>
-    <div><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_blank" rel="noopener">Schedule a free 15-minute consultation</a></div>
+    <div><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_top">Schedule a free 15-minute consultation</a></div>
   </header>
 
   <div class="statebar">
@@ -559,7 +559,7 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-si
   <footer>
     <p>Built by Cognitive Diagnostic Associates (CDA) for families navigating special education evaluations. CDA serves families in 13 states.</p>
     <p>This tool explains federal and state special education rules for general education purposes. <a href="https://cdacompany.com/legal-disclaimer/" target="_blank" rel="noopener" style="color:var(--accent)">It is not legal advice</a>. Laws change, and your situation may call for an attorney or advocate.</p>
-    <p><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_blank" rel="noopener">Schedule a free 15-minute consultation</a></p>
+    <p><a class="btn primary consult" href="https://cdacompany.com/15-minute-consultation/" target="_top">Schedule a free 15-minute consultation</a></p>
   </footer>
 </div>
 
@@ -1240,7 +1240,7 @@ renderAll(); route();
 
 <script>
 (function(){
-document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'';if(/^https?:/i.test(h)&&!a.target){a.target='_blank';a.rel='noopener'}},true);
+document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(!a)return;var h=a.getAttribute('href')||'';if(/^https?:\/\/(www\.)?cdacompany\.com(\/|$)/i.test(h)){a.target='_top'}else if(/^https?:/i.test(h)&&!a.target){a.target='_blank';a.rel='noopener'}},true);
 var inFrame=false;try{inFrame=window.self!==window.top}catch(e){inFrame=true}
 if(!inFrame)return;
 var last=0;function send(){var h=Math.ceil(document.body.getBoundingClientRect().height);if(h&&Math.abs(h-last)>1){last=h;try{parent.postMessage({cdaNavHeight:h},'*')}catch(e){}}}
