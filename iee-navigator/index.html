@@ -1249,4 +1249,6 @@ addEventListener('load',send);addEventListener('resize',send);
 document.addEventListener('DOMContentLoaded',function(){if(window.ResizeObserver)new ResizeObserver(send).observe(document.body);send()});
 setInterval(send,1500);
 })();
-</script></body></html>
+</script><script>(function(){var sent={};function ev(n){if(sent[n])return;sent[n]=1;try{parent.postMessage({cdaNavEvent:n},'*')}catch(e){}}
+document.addEventListener('click',function(e){var t=e.target;if(!t.closest)return;if(t.closest('#copyBtn,#cCopy'))ev('nav_letter');else if(t.closest('.ans'))ev('nav_start');},true);})();</script>
+</body></html>
